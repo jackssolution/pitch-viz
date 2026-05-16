@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pitch Visualizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0b0d14;
+  color: #e0e4f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#header {
+  background: #141824;
+  border-bottom: 1px solid #2a2f45;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+#header h1 { font-size: 15px; font-weight: 700; color: #7eb8f7; letter-spacing: 0.05em; text-transform: uppercase; }
+#header .subtitle { font-size: 11px; color: #5a6080; }
+#layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Left sidebar ── */
+#sidebar {
+  width: 210px;
+  min-width: 210px;
+  background: #111420;
+  border-right: 1px solid #1e2336;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+.section-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #4a5070;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 14px 14px 6px;
+}
+.control-group { padding: 4px 12px; }
+select, input[type=range] {
+  width: 100%;
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  color: #ccd;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+  cursor: pointer;
+}
+select:hover { border-color: #4a6090; }
+select option { background: #1a1f30; }
+
+/* Team search */
+#team-search {
+  width: 100%;
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  color: #ccd;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+}
+#team-search:focus { border-color: #4a6090; }
+#team-suggestions {
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  border-radius: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+  display: none;
+}
+.team-suggestion {
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #b0b8d0;
+  cursor: pointer;
+}
+.team-suggestion:hover { background: #242a40; color: #90b8f0; }
+#loading-indicator {
+  font-size: 10px;
+  color: #5080b0;
+  padding: 4px 12px;
+  display: none;
+}
+
+.pitch-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.pitch-toggle:hover { background: #1a1f2a; }
+.pitch-toggle .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pitch-toggle label {
+  font-size: 12px;
+  color: #b0b8d0;
+  cursor: pointer;
+  flex: 1;
+}
+.pitch-toggle .cnt { font-size: 10px; color: #4a5070; }
+.toggle-row {
+  display: flex;
+  gap: 6px;
+  padding: 4px 12px;
+  flex-wrap: wrap;
+}
+.toggle-btn {
+  flex: 1;
+  min-width: 44px;
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  color: #8090b0;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 5px 3px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+.toggle-btn.active {
+  background: #2a3a60;
+  border-color: #5080c0;
+  color: #90b8f0;
+}
+.toggle-btn:hover:not(.active) { background: #1e253a; border-color: #354060; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 14px;
+  font-size: 11px;
+}
+.stat-label { color: #5a6080; }
+.stat-value { color: #b0c8f0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+#pitch-stats {
+  border-top: 1px solid #1e2336;
+  margin-top: 8px;
+  padding-top: 4px;
+}
+#legend { padding: 8px 0 4px; }
+
+/* ── Main 3D canvas ── */
+#canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#three-canvas { display: block; width: 100%; height: 100%; }
+
+/* HUD overlays */
+.hud {
+  position: absolute;
+  pointer-events: none;
+  color: #8090b0;
+  font-size: 11px;
+}
+#view-label {
+  top: 12px; left: 14px;
+  background: rgba(10,12,22,0.7);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #2a3050;
+}
+#decision-label {
+  bottom: 12px; left: 14px;
+  background: rgba(10,12,22,0.7);
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #2a3050;
+  line-height: 1.8;
+}
+#speed-tag {
+  top: 12px; right: 14px;
+  background: rgba(10,12,22,0.7);
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid #2a3050;
+  font-size: 18px;
+  font-weight: 700;
+  color: #eee;
+}
+
+/* ── Right panel (zone targeting) ── */
+#zone-panel {
+  width: 240px;
+  min-width: 240px;
+  background: #111420;
+  border-left: 1px solid #1e2336;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 10px;
+  gap: 10px;
+  overflow-y: auto;
+}
+#zone-panel h3 {
+  font-size: 9px;
+  font-weight: 700;
+  color: #4a5070;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  align-self: flex-start;
+}
+#zone-canvas-wrap {
+  position: relative;
+  border: 1px solid #2a3050;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+#zone-canvas { display: block; }
+#zone-info {
+  width: 100%;
+  border-top: 1px solid #1e2336;
+  padding-top: 8px;
+}
+.zone-stat { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
+.zone-stat .zl { color: #5a6080; }
+.zone-stat .zv { color: #b0c8f0; font-weight: 600; }
+
+#damage-legend {
+  width: 100%;
+}
+.dl-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.dl-swatch { width: 16px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.dl-label { font-size: 10px; color: #7080a0; }
+
+#batter-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #2a3050;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+.bt-btn {
+  flex: 1;
+  padding: 5px;
+  background: #1a1f30;
+  border: none;
+  color: #6070a0;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bt-btn.active { background: #2a3a60; color: #90b8f0; }
+.bt-btn:hover:not(.active) { background: #1e253a; }
+
+#reset-btn {
+  width: 100%;
+  background: #1e2840;
+  border: 1px solid #2a4070;
+  color: #6090d0;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#reset-btn:hover { background: #243060; color: #90b8f0; }
+
+.pitch-desc {
+  font-size: 10px;
+  color: #5a6888;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Checkbox style */
+input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
+
+/* Animate toggle */
+#anim-btn {
+  width: calc(100% - 24px);
+  background: #1a2030;
+  border: 1px solid #2a3050;
+  color: #7090c0;
+  border-radius: 4px;
+  padding: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 2px 12px 0;
+  transition: all 0.15s;
+}
+#anim-btn:hover { background: #1e253a; }
+#anim-btn.playing { background: #1e3050; border-color: #4070b0; color: #90b8e0; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3050; border-radius: 2px; }
+</style>
+</head>
+<body data-token="{{ token }}">
+
+<div id="header">
+  <h1>⚾ Pitch Visualizer</h1>
+  <span class="subtitle">Batter's Eye View — Drag the crosshair in the zone panel to move the pitch</span>
+</div>
+
+<div id="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar">
+    <div class="section-title">Team</div>
+    <div class="control-group">
+      <input id="team-search" placeholder="Search team tag..." autocomplete="off">
+      <div id="team-suggestions"></div>
+    </div>
+    <div id="loading-indicator">Loading team data...</div>
+
+    <div class="section-title">Pitcher</div>
+    <div class="control-group">
+      <select id="pitcher-select" disabled><option>Select a team first</option></select>
+    </div>
+
+    <div class="section-title">View</div>
+    <div class="toggle-row">
+      <div class="toggle-btn active" id="btn-batter" onclick="setView('batter')">Batter</div>
+      <div class="toggle-btn" id="btn-pitcher" onclick="setView('pitcher')">Pitcher</div>
+      <div class="toggle-btn" id="btn-catcher" onclick="setView('catcher')">Catcher</div>
+      <div class="toggle-btn" id="btn-rhh" onclick="setView('rhh')">RHH</div>
+      <div class="toggle-btn" id="btn-lhh" onclick="setView('lhh')">LHH</div>
+      <div class="toggle-btn" id="btn-free" onclick="setView('free')">Free</div>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Pitches</div>
+    <div id="pitch-toggles"></div>
+
+    <button id="anim-btn" onclick="toggleAnimation()">▶ Animate</button>
+
+    <div id="pitch-stats">
+      <div class="section-title">Selected Pitch Stats</div>
+      <div id="stats-content">
+        <div class="stat-row"><span class="stat-label">Velocity</span><span class="stat-value" id="s-velo">—</span></div>
+        <div class="stat-row"><span class="stat-label">Spin Rate</span><span class="stat-value" id="s-spin">—</span></div>
+        <div class="stat-row"><span class="stat-label">Ind. Vert Break</span><span class="stat-value" id="s-ivb">—</span></div>
+        <div class="stat-row"><span class="stat-label">Horiz Break</span><span class="stat-value" id="s-hb">—</span></div>
+        <div class="stat-row"><span class="stat-label">Extension</span><span class="stat-value" id="s-ext">—</span></div>
+        <div class="stat-row"><span class="stat-label">Release Ht.</span><span class="stat-value" id="s-relh">—</span></div>
+        <div class="stat-row"><span class="stat-label">Plate Loc</span><span class="stat-value" id="s-loc">—</span></div>
+        <div class="stat-row"><span class="stat-label">Sample Size</span><span class="stat-value" id="s-cnt">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN 3D VIEW -->
+  <div id="canvas-wrap">
+    <canvas id="three-canvas"></canvas>
+    <div id="view-label" class="hud">Batter's Perspective</div>
+    <div id="decision-label" class="hud">
+      <span style="color:#f0c040">● 20ft</span> Decision Point &nbsp;|&nbsp;
+      <span style="color:#60c0ff">● 10ft</span> Contact Zone
+    </div>
+    <div id="speed-tag" class="hud" style="display:none"></div>
+  </div>
+
+  <!-- RIGHT ZONE PANEL -->
+  <div id="zone-panel">
+    <h3>Zone Targeting</h3>
+    <p class="pitch-desc">Drag the crosshair to move the pitch location. See where it appears at each decision point.</p>
+
+    <div id="batter-toggle">
+      <button class="bt-btn active" onclick="setBatter('Right')" id="bt-r">RHH</button>
+      <button class="bt-btn" onclick="setBatter('Left')" id="bt-l">LHH</button>
+    </div>
+
+    <div id="zone-canvas-wrap">
+      <canvas id="zone-canvas" width="220" height="300"></canvas>
+    </div>
+
+    <div id="zone-info">
+      <div class="zone-stat"><span class="zl">Plate Location</span><span class="zv" id="zi-loc">—</span></div>
+      <div class="zone-stat"><span class="zl">Decision Pt (20ft)</span><span class="zv" id="zi-dec">—</span></div>
+      <div class="zone-stat"><span class="zl">Damage Score</span><span class="zv" id="zi-dmg">—</span></div>
+      <div class="zone-stat"><span class="zl">Zone</span><span class="zv" id="zi-zone">—</span></div>
+    </div>
+
+    <div id="damage-legend">
+      <div class="section-title" style="padding:8px 0 4px">Damage Zone Key</div>
+      <div class="dl-row"><div class="dl-swatch" style="background:#c02020"></div><span class="dl-label">Elite contact zone</span></div>
+      <div class="dl-row"><div class="dl-swatch" style="background:#c07020"></div><span class="dl-label">Good contact zone</span></div>
+      <div class="dl-row"><div class="dl-swatch" style="background:#208840"></div><span class="dl-label">Average / neutral</span></div>
+      <div class="dl-row"><div class="dl-swatch" style="background:#1a3870"></div><span class="dl-label">Pitcher's zone</span></div>
+    </div>
+
+    <button id="reset-btn" onclick="resetTarget()">↺ Reset to Avg Location</button>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────
+const PITCH_DATA = {};
+
+// Real damage zones from exit velocity data
+const DAMAGE_ZONES = {{ damage_zones | safe }};
+
+const TOKEN = document.body.dataset.token;
+
+// ─────────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────────
+const ZONE = { left: -0.833, right: 0.833, bottom: 1.5, top: 3.5 };
+// Extended range for zone panel (±2.5ft H, 0.5–5.0ft V)
+const ZONE_PAN = { left: -2.5, right: 2.5, bottom: 0.5, top: 5.0 };
+const PLATE_W = 1.417;  // 17 inches in feet
+
+const DEC_DIST  = 20;
+const CONT_DIST = 8;
+
+// ─────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────
+let currentPitcherId = null;
+let activePitchTypes = new Set();
+let batterSide = 'Right';
+let currentView = 'batter';
+let targetX = null;
+let targetZ = null;
+let pitchOffsets = {};       // pitch_type → { x, z } — individual overrides
+let draggingPitchType = null; // null = drag all, string = drag one pitch
+let animPlaying = false;
+let animT = 0;
+let animBalls = [];
+let selectedPitch = null;
+let controls = null;
+let batterGroup = null;
+
+// ─────────────────────────────────────────────────
+//  THREE.JS SETUP
+// ─────────────────────────────────────────────────
+const canvas3d = document.getElementById('three-canvas');
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = false;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080b14);
+scene.fog = new THREE.FogExp2(0x080b14, 0.012);
+
+const camera = new THREE.PerspectiveCamera(55, 1, 0.01, 500);
+
+controls = new THREE.OrbitControls(camera, canvas3d);
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.rotateSpeed = 0.15;
+controls.panSpeed = 0.2;
+controls.zoomSpeed = 0.25;
+controls.target.set(0, 2.5, -15);
+controls.enabled = false;
+
+function setSize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+setSize();
+window.addEventListener('resize', setSize);
+
+// ─────────────────────────────────────────────────
+//  COORDINATE MAPPING
+//  TrackMan: X horiz(+1B), Y dist from plate(+away), Z height(+up)
+//  Scene: X=Xtm, Y=Ztm, Z=-Ytm
+// ─────────────────────────────────────────────────
+function tm2s(x, y_dist, z) {
+  return new THREE.Vector3(x, z, -y_dist);
+}
+
+// ─────────────────────────────────────────────────
+//  SCENE OBJECTS
+// ─────────────────────────────────────────────────
+
+// Ground plane (subtle)
+{
+  const geo = new THREE.PlaneGeometry(60, 200);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x0c1018, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(0, 0, -40);
+  scene.add(mesh);
+}
+
+// Home plate — flat 17" edge toward pitcher (scene -Z), pointed tip toward catcher (+Z)
+// Shape in XY plane; rotation.x = -PI/2 maps shape Y → scene -Z
+// So shape +Y → scene -Z (toward pitcher), shape -Y → scene +Z (toward catcher)
+{
+  const shape = new THREE.Shape();
+  const hw = PLATE_W / 2;
+  const pd = 0.583;
+  shape.moveTo(-hw, 0); shape.lineTo(hw, 0);       // flat edge at scene Z=0 (facing pitcher)
+  shape.lineTo(hw, -pd * 0.6);                      // right shoulder at scene Z=+pd*0.6 (toward catcher)
+  shape.lineTo(0, -pd);                             // tip at scene Z=+pd (toward catcher)
+  shape.lineTo(-hw, -pd * 0.6);
+  shape.closePath();
+  const geo = new THREE.ShapeGeometry(shape);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.85, transparent: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(0, 0.002, 0);
+  scene.add(mesh);
+}
+
+// Strike zone (wireframe box)
+let strikeZoneMesh;
+{
+  const w = ZONE.right - ZONE.left;
+  const h = ZONE.top - ZONE.bottom;
+  const geo = new THREE.BoxGeometry(w, h, 0.01);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, opacity: 0.5, transparent: true });
+  strikeZoneMesh = new THREE.Mesh(geo, mat);
+  strikeZoneMesh.position.set(0, (ZONE.top + ZONE.bottom) / 2, 0.01);
+  scene.add(strikeZoneMesh);
+}
+
+// Damage zone overlay (canvas texture on plane)
+let damageOverlay;
+function buildDamageOverlay() {
+  if (damageOverlay) scene.remove(damageOverlay);
+  const tex = buildDamageTexture();
+  const w = ZONE.right - ZONE.left;
+  const h = ZONE.top - ZONE.bottom;
+  const geo = new THREE.PlaneGeometry(w, h);
+  const mat = new THREE.MeshBasicMaterial({ map: tex, opacity: 0.55, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  damageOverlay = new THREE.Mesh(geo, mat);
+  damageOverlay.position.set(0, (ZONE.top + ZONE.bottom) / 2, 0.0);
+  scene.add(damageOverlay);
+}
+
+function buildDamageTexture() {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(S, S);
+  for (let py = 0; py < S; py++) {
+    for (let px = 0; px < S; px++) {
+      const plateX = ZONE.left + (px / (S - 1)) * (ZONE.right - ZONE.left);
+      const plateZ = ZONE.top - (py / (S - 1)) * (ZONE.top - ZONE.bottom);
+      const score = getDamageScore(plateX, plateZ);
+      const [r, g, b] = damageColor(score);
+      const i = (py * S + px) * 4;
+      img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b; img.data[i+3] = 210;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return new THREE.CanvasTexture(c);
+}
+
+function getDamageScore(plateX, plateZ) {
+  const x = batterSide === 'Left' ? -plateX : plateX;
+  const dz = DAMAGE_ZONES;
+  const col = (x - dz.x_min) / (dz.x_max - dz.x_min) * dz.nx;
+  const row = (dz.z_max - plateZ) / (dz.z_max - dz.z_min) * dz.nz;
+  const c = Math.max(0, Math.min(dz.nx - 1 - 1e-6, col));
+  const r = Math.max(0, Math.min(dz.nz - 1 - 1e-6, row));
+  const c0 = Math.floor(c), c1 = Math.min(dz.nx - 1, c0 + 1);
+  const r0 = Math.floor(r), r1 = Math.min(dz.nz - 1, r0 + 1);
+  const fc = c - c0, fr = r - r0;
+  const g = dz.grid;
+  return (
+    g[r0][c0] * (1 - fr) * (1 - fc) +
+    g[r0][c1] * (1 - fr) * fc +
+    g[r1][c0] * fr * (1 - fc) +
+    g[r1][c1] * fr * fc
+  );
+}
+
+function damageColor(score) {
+  if (score > 0.85) return [190, 30, 30];
+  if (score > 0.70) return [190, 110, 20];
+  if (score > 0.50) return [30, 130, 60];
+  return [20, 50, 110];
+}
+
+buildDamageOverlay();
+
+// Batter silhouette — proportioned to the strike zone
+// ZONE.bottom (1.5 ft) = just below knee; ZONE.top (3.5 ft) = mid-torso (shoulder/pants midpoint)
+// Body heights (ft above ground):
+//   ankle 0.35 | knee 1.55 | hip/belt 3.1 | shoulder 3.9 | head-center 4.55 | top ~5.1
+function updateBatterSilhouette() {
+  if (batterGroup) { scene.remove(batterGroup); batterGroup = null; }
+  batterGroup = new THREE.Group();
+
+  const mat = new THREE.MeshBasicMaterial({ color: 0x1e2848, opacity: 0.85, transparent: true });
+
+  // RHH in the left (3B-side) batter's box, LHH in the right (1B-side) box
+  // Plate edge at ±0.708 ft; batter's box inner edge at ±1.21 ft; center at ±2.0 ft
+  const bx = batterSide === 'Right' ? -2.0 : 2.0;
+  const bz = 0.35; // slightly behind the plate face
+
+  function box(w, h, d, x, y, z) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z);
+    batterGroup.add(m);
+  }
+
+  // Feet (two shoes, staggered front/back)
+  box(0.38, 0.28, 0.55, bx, 0.14, bz - 0.15);
+  box(0.38, 0.28, 0.55, bx, 0.14, bz + 0.22);
+
+  // Lower legs: ankle (0.35) → knee (1.55), h=1.2
+  box(0.21, 1.20, 0.21, bx - 0.11, 0.95, bz - 0.1);
+  box(0.21, 1.20, 0.21, bx + 0.11, 0.95, bz + 0.1);
+
+  // Upper legs: knee (1.55) → hip (3.1), h=1.55
+  box(0.26, 1.55, 0.26, bx - 0.1, 2.33, bz - 0.05);
+  box(0.26, 1.55, 0.26, bx + 0.1, 2.33, bz + 0.05);
+
+  // Torso: hip (3.1) → shoulder (3.9), h=0.8
+  box(0.65, 0.80, 0.32, bx, 3.50, bz);
+
+  // Shoulders/chest: wider bar at shoulder height
+  box(0.85, 0.28, 0.30, bx, 3.90, bz);
+
+  // Head: center at 4.55, radius 0.33
+  const headGeo = new THREE.SphereGeometry(0.33, 10, 10);
+  const headMesh = new THREE.Mesh(headGeo, mat);
+  headMesh.position.set(bx, 4.55, bz);
+  batterGroup.add(headMesh);
+
+  // Arms reaching toward plate (simplified bat-hold pose)
+  const armDir = batterSide === 'Right' ? 1 : -1; // toward plate (+X for RHH, -X for LHH)
+  box(0.65, 0.20, 0.20, bx + armDir * 0.33, 3.75, bz - 0.15); // upper arm
+  box(0.20, 0.20, 0.55, bx + armDir * 0.55, 3.62, bz - 0.38); // forearm angled down
+
+  scene.add(batterGroup);
+}
+
+updateBatterSilhouette();
+
+// Mound marker
+{
+  const geo = new THREE.CircleGeometry(1.5, 24);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x181e2c, side: THREE.DoubleSide });
+  const m = new THREE.Mesh(geo, mat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(0, 0.001, -50);
+  scene.add(m);
+}
+
+// Baseline indicators
+for (let z = -5; z > -55; z -= 5) {
+  const geo = new THREE.PlaneGeometry(0.02, 0.3);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x1e2840, opacity: 0.6, transparent: true });
+  const m = new THREE.Mesh(geo, mat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(0, 0.002, z);
+  scene.add(m);
+}
+
+// Ambient + directional lights
+scene.add(new THREE.AmbientLight(0x202840, 2));
+const dirLight = new THREE.DirectionalLight(0x4060a0, 1.5);
+dirLight.position.set(5, 20, 10);
+scene.add(dirLight);
+
+// ─────────────────────────────────────────────────
+//  TRAJECTORY RENDERING
+// ─────────────────────────────────────────────────
+const trajectoryGroup = new THREE.Group();
+scene.add(trajectoryGroup);
+
+// Per-pitch decision/contact/plate markers — rebuilt in renderTrajectories
+let decisionMarkers = [];
+let contactMarkers  = [];
+let plateMarkers    = [];
+
+// animBalls created dynamically per pitch in renderTrajectories
+
+let targetMarker;
+{
+  const geo = new THREE.SphereGeometry(0.07, 8, 8);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.9, transparent: true });
+  targetMarker = new THREE.Mesh(geo, mat);
+  targetMarker.visible = false;
+  scene.add(targetMarker);
+}
+
+let activeTrajData = [];
+
+function clearTrajectories() {
+  while (trajectoryGroup.children.length) {
+    const c = trajectoryGroup.children[0];
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) c.material.dispose();
+    trajectoryGroup.remove(c);
+  }
+  targetMarker.visible = false;
+  // Remove all per-pitch decision/contact/plate markers
+  [...decisionMarkers, ...contactMarkers, ...plateMarkers].forEach(b => {
+    if (b.geometry) b.geometry.dispose();
+    if (b.material) b.material.dispose();
+    scene.remove(b);
+  });
+  decisionMarkers = [];
+  contactMarkers  = [];
+  plateMarkers    = [];
+  // Remove all per-pitch animation balls
+  animBalls.forEach(b => { if (b.geometry) b.geometry.dispose(); if (b.material) b.material.dispose(); scene.remove(b); });
+  animBalls = [];
+  animPlaying = false;
+  animT = 0;
+  // Note: draggingPitchType is intentionally NOT reset here — it must persist across renderTrajectories calls during a drag
+  document.getElementById('anim-btn').classList.remove('playing');
+  document.getElementById('anim-btn').textContent = '▶ Animate';
+  activeTrajData = [];
+}
+
+function buildShiftedPoints(origPts, origPlateX, origPlateZ, pitchType) {
+  // Per-pitch override takes priority; fall back to global target, then original location
+  const override = pitchOffsets[pitchType];
+  const tgX = override ? override.x : (targetX !== null ? targetX : origPlateX);
+  const tgZ = override ? override.z : (targetZ !== null ? targetZ : origPlateZ);
+  const dx = tgX - origPlateX;
+  const dz = tgZ - origPlateZ;
+  return origPts.map(([x, y_dist, z, frac]) => [
+    x + dx * frac,
+    y_dist,
+    z + dz * frac,
+    frac
+  ]);
+}
+
+function pointsToVectors(pts) {
+  return pts.map(([x, y_dist, z]) => tm2s(x, y_dist, z));
+}
+
+function getPointAtDist(pts, dist) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const y0 = pts[i][1], y1 = pts[i + 1][1];
+    if (y0 >= dist && y1 <= dist) {
+      const t = (y0 - dist) / (y0 - y1);
+      return [
+        pts[i][0] + t * (pts[i + 1][0] - pts[i][0]),
+        dist,
+        pts[i][2] + t * (pts[i + 1][2] - pts[i][2]),
+      ];
+    }
+  }
+  return pts[pts.length - 1];
+}
+
+function getPlatePoint(pts) {
+  return getPointAtDist(pts, 0);
+}
+
+function renderTrajectories() {
+  clearTrajectories();
+  const pitcher = PITCH_DATA[currentPitcherId];
+  if (!pitcher) return;
+
+  const visiblePitches = pitcher.pitches.filter(p => activePitchTypes.has(p.pitch_type));
+  if (!visiblePitches.length) return;
+
+  let firstPitch = null;
+
+  const FT_PER_MPH = 1.467;
+  const RELEASE_DIST = 54.0; // approximate release-to-plate distance in ft
+
+  visiblePitches.forEach(pitch => {
+    const origPts = pitch.trajectory;
+    const shiftedPts = buildShiftedPoints(origPts, pitch.plate_x, pitch.plate_z, pitch.pitch_type);
+    const vecs = pointsToVectors(shiftedPts);
+
+    // Travel time from release to plate based on velocity
+    const travelTime = pitch.velo > 0 ? RELEASE_DIST / (pitch.velo * FT_PER_MPH) : 0.45;
+
+    const curve = new THREE.CatmullRomCurve3(vecs);
+    const tubeGeo = new THREE.TubeGeometry(curve, 40, 0.025, 6, false);
+    const color = new THREE.Color(pitch.color);
+    const tubeMat = new THREE.MeshBasicMaterial({ color, opacity: visiblePitches.length > 1 ? 0.7 : 0.9, transparent: true });
+    const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+    tubeMesh.userData.pitchType = pitch.pitch_type;
+    trajectoryGroup.add(tubeMesh);
+
+    activeTrajData.push({ pitch, origPts, shiftedPts, vecs, travelTime, tubeMesh });
+
+    if (!firstPitch) firstPitch = { pitch, shiftedPts, vecs };
+
+    const relPt = vecs[0];
+    const dotGeo = new THREE.SphereGeometry(0.06, 8, 8);
+    const dotMat = new THREE.MeshBasicMaterial({ color });
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.copy(relPt);
+    trajectoryGroup.add(dot);
+
+    // Create one animated ball per pitch type
+    const ballGeo = new THREE.SphereGeometry(0.12, 12, 12);
+    const ballMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(pitch.color) });
+    const ball = new THREE.Mesh(ballGeo, ballMat);
+    ball.visible = false;
+    scene.add(ball);
+    animBalls.push(ball);
+  });
+
+  // Create decision/contact markers for EVERY pitch
+  activeTrajData.forEach(entry => {
+    const { pitch, shiftedPts } = entry;
+
+    const decPt = getPointAtDist(shiftedPts, DEC_DIST);
+    const decMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xf0c040, opacity: 0.75, transparent: true })
+    );
+    decMesh.position.copy(tm2s(...decPt));
+    scene.add(decMesh);
+    decisionMarkers.push(decMesh);
+
+    const contPt = getPointAtDist(shiftedPts, CONT_DIST);
+    const contMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.10, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0x60c0ff, opacity: 0.75, transparent: true })
+    );
+    contMesh.position.copy(tm2s(...contPt));
+    scene.add(contMesh);
+    contactMarkers.push(contMesh);
+
+    // Plate-crossing marker — pitch color, same size as animated ball
+    const platePt = getPlatePoint(shiftedPts);
+    const plateMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(pitch.color), opacity: 0.9, transparent: true })
+    );
+    plateMesh.position.copy(tm2s(...platePt));
+    scene.add(plateMesh);
+    plateMarkers.push(plateMesh);
+  });
+
+  if (firstPitch) {
+    const { pitch, shiftedPts } = firstPitch;
+    const platePt = getPlatePoint(shiftedPts);
+    targetMarker.position.copy(tm2s(platePt[0], 0.1, platePt[2]));
+    targetMarker.visible = true;
+    updateStats(pitch);
+    updateZoneInfo(pitch, shiftedPts);
+  }
+
+  const spTag = document.getElementById('speed-tag');
+  if (firstPitch && visiblePitches.length === 1) {
+    spTag.textContent = `${firstPitch.pitch.velo.toFixed(1)} mph`;
+    spTag.style.display = '';
+  } else {
+    spTag.style.display = 'none';
+  }
+}
+
+function updateStats(pitch) {
+  selectedPitch = pitch;
+  const hSign = pitch.hb >= 0 ? '+' : '';
+  const ivbSign = pitch.ivb >= 0 ? '+' : '';
+  document.getElementById('s-velo').textContent = `${pitch.velo.toFixed(1)} mph`;
+  document.getElementById('s-spin').textContent = `${Math.round(pitch.spin)} rpm`;
+  document.getElementById('s-ivb').textContent  = `${ivbSign}${pitch.ivb.toFixed(1)}"`;
+  document.getElementById('s-hb').textContent   = `${hSign}${pitch.hb.toFixed(1)}"`;
+  document.getElementById('s-ext').textContent  = `${pitch.extension.toFixed(2)} ft`;
+  document.getElementById('s-relh').textContent = `${pitch.rel_height.toFixed(2)} ft`;
+  const sideDir = pitch.plate_x > 0 ? 'In (RHH)' : 'Away (RHH)';
+  document.getElementById('s-loc').textContent  = `${Math.abs(pitch.plate_x).toFixed(2)}ft ${sideDir}`;
+  document.getElementById('s-cnt').textContent  = `${pitch.count} pitches`;
+}
+
+function updateZoneInfo(pitch, shiftedPts) {
+  const platePt = getPlatePoint(shiftedPts);
+  const decPt = getPointAtDist(shiftedPts, DEC_DIST);
+  const px = platePt[0], pz = platePt[2];
+  const score = getDamageScore(px, pz);
+
+  document.getElementById('zi-loc').textContent = `(${px >= 0 ? '+' : ''}${px.toFixed(2)}, ${pz.toFixed(2)}ft)`;
+  document.getElementById('zi-dec').textContent = `(${decPt[0] >= 0 ? '+' : ''}${decPt[0].toFixed(2)}, ${decPt[2].toFixed(2)}ft)`;
+  document.getElementById('zi-dmg').textContent = `${Math.round(score * 100)}%`;
+
+  const zoneName = getZoneName(px, pz);
+  document.getElementById('zi-zone').textContent = zoneName;
+}
+
+function getZoneName(px, pz) {
+  const x = batterSide === 'Right' ? px : -px;
+  const inOut = x > 0.28 ? 'Inside' : x < -0.28 ? 'Outside' : 'Middle';
+  const hiLo = pz > 2.8 ? 'High' : pz < 2.0 ? 'Low' : 'Belt';
+  return `${hiLo} ${inOut}`;
+}
+
+// ─────────────────────────────────────────────────
+//  3D CANVAS DRAG FOR PITCH PLACEMENT
+// ─────────────────────────────────────────────────
+const platePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); // Z=0 plane
+const raycaster3D = new THREE.Raycaster();
+const mouse3D = new THREE.Vector2();
+
+function get3DPlaneHit(e) {
+  const rect = canvas3d.getBoundingClientRect();
+  mouse3D.x = (e.clientX - rect.left) / rect.width * 2 - 1;
+  mouse3D.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster3D.setFromCamera(mouse3D, camera);
+  const target = new THREE.Vector3();
+  return raycaster3D.ray.intersectPlane(platePlane, target) ? target : null;
+}
+
+// pitchType = null → move all; pitchType = string → move only that pitch
+function applyPlateTarget(x, height, pitchType) {
+  const cx = Math.max(-2.5, Math.min(2.5, x));
+  const cz = Math.max(0.5, Math.min(5.0, height));
+  if (pitchType) {
+    pitchOffsets[pitchType] = { x: cx, z: cz };
+  } else {
+    targetX = cx;
+    targetZ = cz;
+    pitchOffsets = {}; // clear individual overrides when moving all
+  }
+  renderTrajectories();
+  drawZonePanel();
+}
+
+// Find which trajectory tube is closest to the click in screen space.
+// Projects each trajectory point onto the screen and checks pixel distance.
+const TUBE_HIT_PX = 28;
+function getTubeHit(e) {
+  if (!activeTrajData.length) return null;
+  const rect = canvas3d.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const w = rect.width, h = rect.height;
+
+  let bestType = null;
+  let bestDist = TUBE_HIT_PX;
+  const proj = new THREE.Vector3();
+
+  activeTrajData.forEach(entry => {
+    entry.vecs.forEach(v => {
+      proj.copy(v).project(camera);
+      if (proj.z > 1) return; // behind camera — skip
+      const sx = (proj.x + 1) / 2 * w;
+      const sy = (1 - proj.y) / 2 * h;
+      const d = Math.hypot(sx - mx, sy - my);
+      if (d < bestDist) { bestDist = d; bestType = entry.pitch.pitch_type; }
+    });
+  });
+  return bestType;
+}
+
+let is3DDragging = false;
+
+// Hover: show grab cursor when near a tube
+canvas3d.addEventListener('mousemove', e => {
+  if (is3DDragging) return;
+  canvas3d.style.cursor = getTubeHit(e) ? 'grab' : 'default';
+});
+
+// ── Pitch drag — capture phase + stopImmediatePropagation on POINTER events
+//    (Three.js r128 OrbitControls uses pointerdown/pointermove/pointerup)
+canvas3d.addEventListener('pointerdown', e => {
+  const hitType = getTubeHit(e);
+  if (!hitType) return; // no tube hit — let OrbitControls handle camera
+
+  const pt = get3DPlaneHit(e);
+  e.stopImmediatePropagation(); // blocks OrbitControls so camera doesn't move
+  draggingPitchType = hitType;
+  is3DDragging = true;
+  controls.enabled = false;
+  canvas3d.style.cursor = 'grabbing';
+  canvas3d.setPointerCapture(e.pointerId);
+  zFocusPitch = hitType;
+  if (pt) applyPlateTarget(pt.x, pt.y, hitType);
+}, { capture: true });
+
+canvas3d.addEventListener('pointermove', e => {
+  if (!is3DDragging) return;
+  e.stopImmediatePropagation();
+  const pt = get3DPlaneHit(e);
+  if (pt) applyPlateTarget(pt.x, pt.y, draggingPitchType);
+}, { capture: true });
+
+canvas3d.addEventListener('pointerup', e => {
+  if (is3DDragging) e.stopImmediatePropagation();
+  is3DDragging = false;
+  draggingPitchType = null;
+  controls.enabled = true;
+  canvas3d.style.cursor = 'default';
+}, { capture: true });
+
+canvas3d.addEventListener('pointerleave', () => {
+  is3DDragging = false;
+  draggingPitchType = null;
+  controls.enabled = true;
+  canvas3d.style.cursor = 'default';
+});
+
+// ─────────────────────────────────────────────────
+//  CAMERA VIEWS
+// ─────────────────────────────────────────────────
+const VIEWS = {
+  batter: {
+    // Dead center behind the plate, mid-strike-zone height, looking straight at pitcher
+    pos: new THREE.Vector3(0, 2.6, 6.0),
+    look: new THREE.Vector3(0, 2.6, -55),
+    label: "Batter's Perspective",
+  },
+  pitcher: {
+    // From roughly the mound, looking in toward the plate
+    pos: new THREE.Vector3(0.3, 6.0, -57),
+    look: new THREE.Vector3(0, 2.5, 0),
+    label: "Pitcher View",
+  },
+  catcher: {
+    // Low crouch position behind the plate, looking through the zone toward mound
+    pos: new THREE.Vector3(0, 1.0, 5.5),
+    look: new THREE.Vector3(0, 3.2, -42),
+    label: "Catcher's View",
+  },
+  rhh: {
+    // Right-handed batter stands on the 3B side (negative X)
+    pos: new THREE.Vector3(-0.65, 5.5, 1.8),
+    look: new THREE.Vector3(0.15, 3.2, -35),
+    label: "RHH Batter POV",
+  },
+  lhh: {
+    // Left-handed batter stands on the 1B side (positive X)
+    pos: new THREE.Vector3(0.65, 5.5, 1.8),
+    look: new THREE.Vector3(-0.15, 3.2, -35),
+    label: "LHH Batter POV",
+  },
+  free: {
+    pos: new THREE.Vector3(-12, 8, -15),
+    look: new THREE.Vector3(0, 2.5, -20),
+    label: "Free Camera (drag to orbit)",
+  },
+};
+
+function setView(name) {
+  currentView = name;
+  const v = VIEWS[name];
+  camera.position.copy(v.pos);
+  controls.target.copy(v.look);
+  controls.enabled = true; // always allow orbit; pitch drag temporarily disables it
+  camera.lookAt(v.look);
+  document.getElementById('view-label').textContent = v.label;
+
+  // Sync batter silhouette side when switching batter-specific views
+  if (name === 'rhh') setBatter('Right');
+  else if (name === 'lhh') setBatter('Left');
+
+  ['batter', 'pitcher', 'catcher', 'rhh', 'lhh', 'free'].forEach(n => {
+    const el = document.getElementById(`btn-${n}`);
+    if (el) el.classList.toggle('active', n === name);
+  });
+}
+
+setView('batter');
+
+// ─────────────────────────────────────────────────
+//  ANIMATION
+// ─────────────────────────────────────────────────
+function toggleAnimation() {
+  animPlaying = !animPlaying;
+  const btn = document.getElementById('anim-btn');
+  if (animPlaying) {
+    btn.classList.add('playing');
+    btn.textContent = '⏸ Pause';
+    // Resume from current animT — don't reset
+  } else {
+    btn.classList.remove('playing');
+    btn.textContent = '▶ Animate';
+    // Leave balls visible at their paused position
+  }
+}
+
+function updateAnimation(delta) {
+  if (!animPlaying || activeTrajData.length === 0) return;
+
+  // Find slowest pitch travel time (= longest duration before loop)
+  const maxTravelTime = Math.max(...activeTrajData.map(d => d.travelTime));
+  const loopDuration = maxTravelTime + 0.35; // small pause before restart
+
+  const ANIM_SPEED = 0.25; // fraction of real speed — ratios between pitches preserved
+  animT += delta * ANIM_SPEED;
+  if (animT > loopDuration) animT = 0;
+
+  activeTrajData.forEach((entry, i) => {
+    const ball = animBalls[i];
+    if (!ball) return;
+    // Each pitch moves at its own rate based on velocity
+    const frac = Math.min(1.0, animT / entry.travelTime);
+    const idx = frac * (entry.vecs.length - 1);
+    const i0 = Math.floor(idx);
+    const i1 = Math.min(entry.vecs.length - 1, i0 + 1);
+    const lerp = idx - i0;
+    const pos = new THREE.Vector3().lerpVectors(entry.vecs[i0], entry.vecs[i1], lerp);
+    ball.position.copy(pos);
+    // Hide briefly at the reset moment (first few ms)
+    ball.visible = animT > 0.01;
+  });
+}
+
+// ─────────────────────────────────────────────────
+//  TEAM SEARCH & PITCHER CONTROLS
+// ─────────────────────────────────────────────────
+let allTeams = [];
+
+async function loadTeamList() {
+  try {
+    const resp = await fetch(`/api/${TOKEN}/teams`);
+    allTeams = await resp.json();
+    // Pre-populate suggestions hidden until user types
+  } catch (e) {
+    console.error('Failed to load team list:', e);
+  }
+}
+
+const teamSearchInput = document.getElementById('team-search');
+const teamSuggestions = document.getElementById('team-suggestions');
+
+teamSearchInput.addEventListener('input', () => {
+  const q = teamSearchInput.value.trim().toUpperCase();
+  if (!q) {
+    teamSuggestions.style.display = 'none';
+    return;
+  }
+  const matches = allTeams.filter(t => t.tag.toUpperCase().includes(q)).slice(0, 20);
+  if (!matches.length) {
+    teamSuggestions.style.display = 'none';
+    return;
+  }
+  teamSuggestions.innerHTML = '';
+  matches.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'team-suggestion';
+    div.textContent = `${t.tag} (${t.file_count} files)`;
+    div.addEventListener('click', () => {
+      teamSearchInput.value = t.tag;
+      teamSuggestions.style.display = 'none';
+      selectTeam(t.tag);
+    });
+    teamSuggestions.appendChild(div);
+  });
+  teamSuggestions.style.display = 'block';
+});
+
+teamSearchInput.addEventListener('blur', () => {
+  setTimeout(() => { teamSuggestions.style.display = 'none'; }, 150);
+});
+
+async function selectTeam(tag) {
+  const loadingEl = document.getElementById('loading-indicator');
+  const pitcherSel = document.getElementById('pitcher-select');
+  loadingEl.style.display = 'block';
+  pitcherSel.disabled = true;
+  pitcherSel.innerHTML = '<option>Loading...</option>';
+  clearTrajectories();
+  document.getElementById('pitch-toggles').innerHTML = '';
+
+  try {
+    const resp = await fetch(`/api/${TOKEN}/team/${encodeURIComponent(tag)}`);
+    const data = await resp.json();
+    const pitchers = data.pitchers || {};
+
+    // Merge into PITCH_DATA
+    Object.assign(PITCH_DATA, pitchers);
+
+    populatePitcherSelect(pitchers);
+  } catch (e) {
+    console.error('Failed to load team:', e);
+    pitcherSel.innerHTML = '<option>Error loading team</option>';
+  } finally {
+    loadingEl.style.display = 'none';
+  }
+}
+
+function populatePitcherSelect(pitchers) {
+  const sel = document.getElementById('pitcher-select');
+  const sorted = Object.values(pitchers).sort((a, b) => a.name.localeCompare(b.name));
+  sel.innerHTML = '';
+  if (!sorted.length) {
+    sel.innerHTML = '<option>No pitchers found</option>';
+    sel.disabled = true;
+    return;
+  }
+  sorted.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.name} (${p.throws[0]}HP)`;
+    sel.appendChild(opt);
+  });
+  sel.disabled = false;
+  sel.removeEventListener('change', onPitcherChange);
+  sel.addEventListener('change', onPitcherChange);
+  if (sorted.length) selectPitcher(sorted[0].id);
+}
+
+function onPitcherChange() {
+  selectPitcher(document.getElementById('pitcher-select').value);
+}
+
+function selectPitcher(pid) {
+  currentPitcherId = pid;
+  const pitcher = PITCH_DATA[pid];
+  if (!pitcher) return;
+
+  activePitchTypes = new Set(pitcher.pitches.map(p => p.pitch_type));
+  targetX = null;
+  targetZ = null;
+
+  buildPitchToggles(pitcher);
+  drawZonePanel();
+  renderTrajectories();
+}
+
+function buildPitchToggles(pitcher) {
+  const container = document.getElementById('pitch-toggles');
+  container.innerHTML = '';
+  pitcher.pitches.forEach(pitch => {
+    const div = document.createElement('div');
+    div.className = 'pitch-toggle';
+    div.dataset.pt = pitch.pitch_type;
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = true;
+    cb.addEventListener('change', () => {
+      if (cb.checked) activePitchTypes.add(pitch.pitch_type);
+      else activePitchTypes.delete(pitch.pitch_type);
+      if (activePitchTypes.size === 0) { cb.checked = true; activePitchTypes.add(pitch.pitch_type); }
+      renderTrajectories();
+      drawZonePanel();
+    });
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.style.background = pitch.color;
+    const lbl = document.createElement('label');
+    lbl.textContent = pitch.pitch_type;
+    const cnt = document.createElement('span');
+    cnt.className = 'cnt';
+    cnt.textContent = `n=${pitch.count}`;
+    div.appendChild(cb);
+    div.appendChild(dot);
+    div.appendChild(lbl);
+    div.appendChild(cnt);
+    container.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────────────
+//  BATTER SIDE
+// ─────────────────────────────────────────────────
+function setBatter(side) {
+  batterSide = side;
+  document.getElementById('bt-r').classList.toggle('active', side === 'Right');
+  document.getElementById('bt-l').classList.toggle('active', side === 'Left');
+  updateBatterSilhouette();
+  buildDamageOverlay();
+  drawZonePanel();
+  renderTrajectories();
+}
+
+// ─────────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────────
+function resetTarget() {
+  targetX = null;
+  targetZ = null;
+  pitchOffsets = {};
+  renderTrajectories();
+  drawZonePanel();
+}
+
+// ─────────────────────────────────────────────────
+//  2D ZONE PANEL — Extended range ±2.5ft H, 0.5–5.0ft V
+// ─────────────────────────────────────────────────
+const zoneCanvas = document.getElementById('zone-canvas');
+const zCtx = zoneCanvas.getContext('2d');
+const ZW = zoneCanvas.width, ZH = zoneCanvas.height;
+
+const ZPad = { top: 30, bottom: 30, left: 20, right: 20 };
+const ZInner = { w: ZW - ZPad.left - ZPad.right, h: ZH - ZPad.top - ZPad.bottom };
+
+function zoneToCanvas(plateX, plateZ) {
+  const cx = ZPad.left + (plateX - ZONE_PAN.left) / (ZONE_PAN.right - ZONE_PAN.left) * ZInner.w;
+  const cy = ZPad.top + (ZONE_PAN.top - plateZ) / (ZONE_PAN.top - ZONE_PAN.bottom) * ZInner.h;
+  return [cx, cy];
+}
+
+function canvasToZone(cx, cy) {
+  const plateX = ZONE_PAN.left + (cx - ZPad.left) / ZInner.w * (ZONE_PAN.right - ZONE_PAN.left);
+  const plateZ = ZONE_PAN.top - (cy - ZPad.top) / ZInner.h * (ZONE_PAN.top - ZONE_PAN.bottom);
+  return [plateX, plateZ];
+}
+
+function drawZonePanel() {
+  zCtx.clearRect(0, 0, ZW, ZH);
+
+  // Damage zone gradient background over full extended range
+  const S = 64;
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = S; tempCanvas.height = S;
+  const tc = tempCanvas.getContext('2d');
+  const img = tc.createImageData(S, S);
+  for (let py = 0; py < S; py++) {
+    for (let px = 0; px < S; px++) {
+      const pX = ZONE_PAN.left + (px / (S - 1)) * (ZONE_PAN.right - ZONE_PAN.left);
+      const pZ = ZONE_PAN.top - (py / (S - 1)) * (ZONE_PAN.top - ZONE_PAN.bottom);
+      const score = getDamageScore(pX, pZ);
+      const [r, g, b] = damageColor(score);
+      const i = (py * S + px) * 4;
+      img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b; img.data[i+3] = 180;
+    }
+  }
+  tc.putImageData(img, 0, 0);
+  zCtx.drawImage(tempCanvas, ZPad.left, ZPad.top, ZInner.w, ZInner.h);
+
+  // Outer panel border
+  zCtx.strokeStyle = 'rgba(100,120,160,0.5)';
+  zCtx.lineWidth = 1;
+  zCtx.strokeRect(ZPad.left, ZPad.top, ZInner.w, ZInner.h);
+
+  // Actual strike zone box as white outline inside the larger canvas
+  const szLeft = ZPad.left + (ZONE.left - ZONE_PAN.left) / (ZONE_PAN.right - ZONE_PAN.left) * ZInner.w;
+  const szRight = ZPad.left + (ZONE.right - ZONE_PAN.left) / (ZONE_PAN.right - ZONE_PAN.left) * ZInner.w;
+  const szTop = ZPad.top + (ZONE_PAN.top - ZONE.top) / (ZONE_PAN.top - ZONE_PAN.bottom) * ZInner.h;
+  const szBottom = ZPad.top + (ZONE_PAN.top - ZONE.bottom) / (ZONE_PAN.top - ZONE_PAN.bottom) * ZInner.h;
+
+  zCtx.strokeStyle = 'rgba(255,255,255,0.8)';
+  zCtx.lineWidth = 1.5;
+  zCtx.strokeRect(szLeft, szTop, szRight - szLeft, szBottom - szTop);
+
+  // 9-zone grid lines inside strike zone
+  zCtx.strokeStyle = 'rgba(255,255,255,0.25)';
+  zCtx.lineWidth = 1;
+  for (let i = 1; i < 3; i++) {
+    const xL = szLeft + (i / 3) * (szRight - szLeft);
+    zCtx.beginPath(); zCtx.moveTo(xL, szTop); zCtx.lineTo(xL, szBottom); zCtx.stroke();
+    const yL = szTop + (i / 3) * (szBottom - szTop);
+    zCtx.beginPath(); zCtx.moveTo(szLeft, yL); zCtx.lineTo(szRight, yL); zCtx.stroke();
+  }
+
+  // Labels
+  zCtx.fillStyle = 'rgba(180,200,240,0.9)';
+  zCtx.font = '9px monospace';
+  zCtx.textAlign = 'center';
+  zCtx.fillText(batterSide === 'Right' ? '← Away' : '← In', ZPad.left + ZInner.w * 0.18, ZPad.top - 8);
+  zCtx.fillText(batterSide === 'Right' ? 'In →' : 'Away →', ZPad.left + ZInner.w * 0.82, ZPad.top - 8);
+  zCtx.textAlign = 'left';
+  zCtx.fillText('High', ZPad.left - 18, ZPad.top + 12);
+  zCtx.fillText('Low',  ZPad.left - 16, ZPad.top + ZInner.h + 4);
+
+  // Helper: clamp canvas coords to within the inner zone panel
+  const clampPx = (cx, cy) => [
+    Math.max(ZPad.left + 10, Math.min(ZPad.left + ZInner.w - 10, cx)),
+    Math.max(ZPad.top  + 10, Math.min(ZPad.top  + ZInner.h - 10, cy))
+  ];
+
+  // Draw decision + contact rings FIRST (so plate dot sits on top)
+  activeTrajData.forEach(entry => {
+    const { shiftedPts, pitch } = entry;
+    const decPt  = getPointAtDist(shiftedPts, DEC_DIST);
+    const contPt = getPointAtDist(shiftedPts, CONT_DIST);
+    const platePt = getPlatePoint(shiftedPts);
+    const [dcx, dcy]  = clampPx(...zoneToCanvas(decPt[0],  decPt[2]));
+    const [ccx, ccy]  = clampPx(...zoneToCanvas(contPt[0], contPt[2]));
+    const [pcx, pcy]  = clampPx(...zoneToCanvas(platePt[0], platePt[2]));
+
+    // Connector line: decision → plate
+    zCtx.beginPath();
+    zCtx.moveTo(dcx, dcy); zCtx.lineTo(pcx, pcy);
+    zCtx.strokeStyle = 'rgba(255,255,255,0.25)';
+    zCtx.lineWidth = 1.5; zCtx.setLineDash([3, 4]); zCtx.stroke(); zCtx.setLineDash([]);
+
+    // Decision point ring (yellow dashed) — radius 10, extends beyond plate dot
+    zCtx.beginPath(); zCtx.arc(dcx, dcy, 10, 0, Math.PI * 2);
+    zCtx.strokeStyle = '#f0c040'; zCtx.lineWidth = 2;
+    zCtx.setLineDash([4, 3]); zCtx.stroke(); zCtx.setLineDash([]);
+
+    // Contact point ring (blue) — radius 7
+    zCtx.beginPath(); zCtx.arc(ccx, ccy, 7, 0, Math.PI * 2);
+    zCtx.strokeStyle = '#60c0ff'; zCtx.lineWidth = 2; zCtx.stroke();
+  });
+
+  // Draw plate dots ON TOP of rings
+  activeTrajData.forEach(entry => {
+    const platePt = getPlatePoint(entry.shiftedPts);
+    const [cx, cy] = clampPx(...zoneToCanvas(platePt[0], platePt[2]));
+    zCtx.beginPath();
+    zCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+    zCtx.fillStyle = entry.pitch.color;
+    zCtx.fill();
+    zCtx.strokeStyle = 'rgba(255,255,255,0.9)';
+    zCtx.lineWidth = 1.5;
+    zCtx.stroke();
+  });
+
+  // Crosshair on the focused pitch (last individually moved, or first pitch)
+  const focusEntry = activeTrajData.find(d => d.pitch.pitch_type === zFocusPitch) || activeTrajData[0];
+  if (focusEntry) {
+    const platePt = getPlatePoint(focusEntry.shiftedPts);
+    const [tcx, tcy] = clampPx(...zoneToCanvas(platePt[0], platePt[2]));
+    zCtx.beginPath();
+    zCtx.arc(tcx, tcy, 11, 0, Math.PI * 2);
+    zCtx.strokeStyle = 'rgba(255,255,255,0.9)';
+    zCtx.lineWidth = 2; zCtx.stroke();
+    zCtx.strokeStyle = 'rgba(255,255,255,0.7)';
+    zCtx.lineWidth = 1;
+    zCtx.beginPath();
+    zCtx.moveTo(tcx - 15, tcy); zCtx.lineTo(tcx + 15, tcy);
+    zCtx.moveTo(tcx, tcy - 15); zCtx.lineTo(tcx, tcy + 15);
+    zCtx.stroke();
+    zCtx.beginPath();
+    zCtx.arc(tcx, tcy, 3, 0, Math.PI * 2);
+    zCtx.fillStyle = '#fff'; zCtx.fill();
+  }
+}
+
+// Zone panel drag — delta-based: preserves all pitch positions, no jump on click
+let zDragging = false;
+let zFocusPitch = null; // which pitch the crosshair follows in zone panel
+let zDragStartPos = null;   // [plateX, plateZ] where drag began
+let zDragBasePts  = {};     // pitch_type → [baseX, baseZ] at drag start
+
+function zoneMousePos(e) {
+  const rect = zoneCanvas.getBoundingClientRect();
+  const scaleX = ZW / rect.width, scaleY = ZH / rect.height;
+  const cx = Math.max(ZPad.left, Math.min(ZPad.left + ZInner.w, (e.clientX - rect.left) * scaleX));
+  const cy = Math.max(ZPad.top,  Math.min(ZPad.top  + ZInner.h, (e.clientY - rect.top)  * scaleY));
+  return canvasToZone(cx, cy);
+}
+function zoneTouch(e) { return zoneMousePos(e.touches[0] || e.changedTouches[0]); }
+
+function startZoneDrag(pos) {
+  zDragging = true;
+  zDragStartPos = pos;
+  // Snapshot the STORED target position for each pitch (not derived from shiftedPts,
+  // which has interpolation drift that compounds across multiple drags)
+  zDragBasePts = {};
+  activeTrajData.forEach(entry => {
+    const type = entry.pitch.pitch_type;
+    const ov = pitchOffsets[type];
+    if (ov) {
+      zDragBasePts[type] = [ov.x, ov.z];
+    } else if (targetX !== null) {
+      zDragBasePts[type] = [targetX, targetZ];
+    } else {
+      zDragBasePts[type] = [entry.pitch.plate_x, entry.pitch.plate_z];
+    }
+  });
+}
+
+function applyZoneDrag(pos) {
+  if (!zDragStartPos || activeTrajData.length === 0) return;
+  const dx = pos[0] - zDragStartPos[0];
+  const dz = pos[1] - zDragStartPos[1];
+  // Move every pitch by the same delta from its snapshotted position
+  activeTrajData.forEach(entry => {
+    const type = entry.pitch.pitch_type;
+    const base = zDragBasePts[type] || [entry.pitch.plate_x, entry.pitch.plate_z];
+    const nx = Math.max(-2.5, Math.min(2.5, base[0] + dx));
+    const nz = Math.max(0.5,  Math.min(5.0, base[1] + dz));
+    pitchOffsets[type] = { x: nx, z: nz };
+  });
+  zFocusPitch = null;
+  renderTrajectories();
+  drawZonePanel();
+}
+
+zoneCanvas.addEventListener('mousedown', e => { startZoneDrag(zoneMousePos(e)); });
+zoneCanvas.addEventListener('mousemove', e => { if (zDragging) applyZoneDrag(zoneMousePos(e)); });
+zoneCanvas.addEventListener('mouseup',    () => { zDragging = false; zDragStartPos = null; });
+zoneCanvas.addEventListener('mouseleave', () => { zDragging = false; zDragStartPos = null; });
+zoneCanvas.addEventListener('touchstart', e => { e.preventDefault(); startZoneDrag(zoneTouch(e)); }, { passive: false });
+zoneCanvas.addEventListener('touchmove',  e => { e.preventDefault(); if (zDragging) applyZoneDrag(zoneTouch(e)); }, { passive: false });
+zoneCanvas.addEventListener('touchend',   () => { zDragging = false; zDragStartPos = null; });
+
+// ─────────────────────────────────────────────────
+//  RENDER LOOP
+// ─────────────────────────────────────────────────
+let then = 0;
+function animate(now) {
+  requestAnimationFrame(animate);
+  const delta = Math.min(0.1, (now - then) / 1000);
+  then = now;
+  if (controls.enabled) controls.update();
+  updateAnimation(delta);
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(animate);
+
+// ─────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────
+drawZonePanel();
+loadTeamList();
+</script>
+</body>
+</html>

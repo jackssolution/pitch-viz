@@ -1,0 +1,23 @@
+# Secret token — never commit this
+.secret_token
+
+# Generated cache files
+team_index.pkl
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Data — too large for GitHub (use Google Drive + gdrive_manifest.json instead)
+data/

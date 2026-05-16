@@ -225,8 +225,24 @@ def compute_damage_zones(rows):
 
 
 def load_damage_zones():
-    """Load damage zones from Illinois CSV (bundled with the app)."""
+    """Load pre-built damage zones JSON, or fall back to Illinois CSV."""
+    json_file = os.path.join(os.path.dirname(__file__), 'damage_zones.json')
+    if os.path.exists(json_file):
+        with open(json_file) as f:
+            return json.load(f)
+    # Fallback: compute from bundled Illinois CSV
     data_file = os.path.join(os.path.dirname(__file__), 'Illinois - Sheet1.csv')
+    if not os.path.exists(data_file):
+        # No data at all — return a flat/neutral grid
+        NX, NZ = 12, 12
+        return {
+            'grid': [[0.5] * NX for _ in range(NZ)],
+            'nx': NX, 'nz': NZ,
+            'x_min': -1.5, 'x_max': 1.5,
+            'z_min': 0.5,  'z_max': 5.0,
+            'ev_min': 80.0, 'ev_max': 100.0,
+            'n_contacts': 0,
+        }
     with open(data_file, encoding='utf-8-sig') as f:
         all_rows = list(csv.DictReader(f))
     return compute_damage_zones(all_rows)

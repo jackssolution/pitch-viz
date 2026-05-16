@@ -370,13 +370,9 @@ def fix_curveball_outliers(df, pitcher_hand):
 
 def run_pitch_classification(df: pd.DataFrame) -> pd.DataFrame:
     """Run the full 9-step pitch classification pipeline per pitcher, matching pitcher_sheets.py."""
-    import math
     # Ensure SpinRate exists (needed by compare_and_reassign)
     if "SpinRate" not in df.columns:
         df["SpinRate"] = np.nan
-
-    # Replace Undefined with Unknown
-    df["TaggedPitchType"] = df["TaggedPitchType"].replace({"Undefined": "Unknown"})
 
     result_parts = []
     for pitcher_name in df["Pitcher"].unique():
@@ -388,36 +384,39 @@ def run_pitch_classification(df: pd.DataFrame) -> pd.DataFrame:
 
         pitcher_hand = pdf["PitcherThrows"].iloc[0] if "PitcherThrows" in pdf.columns else "Right"
 
-        # Step 1: normalize raw tags
-        tags = pdf["TaggedPitchType"].unique()
-        if any(t in tags for t in ["FourSeamFastBall","TwoSeamFastBall","OneSeamFastBall","Unknown"]) \
-           or any(t in RAW_TAG_MAP for t in tags):
+        # Step 1: normalize raw tags (FourSeam/TwoSeam → Fastball/Sinker)
+        pitch_tags = pdf["TaggedPitchType"].unique()
+        if "FourSeamFastBall" in pitch_tags or "TwoSeamFastBall" in pitch_tags:
             pdf = relabel_split_fastballs(pdf)
 
-        # Step 2: merge similar clusters
+        # Step 2: merge clusters that are too similar to be distinct pitch types
         pdf = resolve_similar_groups(pdf, pitcher_hand)
 
-        # Step 3: first outlier pass
+        # Step 3: first outlier pass — clean up before building pitch model
         pdf = fix_pitch_outliers(pdf)
 
-        # Step 4: reclassify rare pitches
+        # Step 4: reclassify rare pitches against remaining clusters
         if len(pdf) > 19:
+            hand = pdf["PitcherThrows"].iloc[0]
+            pdf["_NormHB"] = pdf["HorzBreak"].apply(lambda hb: hb if hand == "Right" else -hb)
+            pdf.groupby("TaggedPitchType")[["_NormHB", "InducedVertBreak", "RelSpeed"]].mean()
+            pdf = pdf.drop(columns=["_NormHB"])
             pdf = recategorize_rare_pitches(pdf)
 
-        # Step 5: main classifier
+        # Step 5: main classifier — pitcher model then league fallback
         pdf = compare_and_reassign(pdf, pitcher_hand)
 
-        # Step 6: second outlier pass
+        # Step 6: second outlier pass — catch anything compare_and_reassign shifted
         pdf = fix_pitch_outliers(pdf)
 
-        # Step 7: final rare cleanup
+        # Step 7: final rare pitch cleanup
         if len(pdf) > 19:
             pdf = recategorize_rare_pitches(pdf)
 
-        # Step 8: curveball IVB sanity
+        # Step 8: sanity check on curveball IVB
         pdf = fix_curveballs(pdf, pitcher_hand)
 
-        # Step 9: curveball outliers
+        # Step 9: fix individual curveball pitches that belong to other clusters
         pdf = fix_curveball_outliers(pdf, pitcher_hand)
 
         result_parts.append(pdf)

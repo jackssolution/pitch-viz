@@ -109,35 +109,36 @@ def main():
     # Step 2: read team names from local CSVs
     local_csvs = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
     print(f"\nReading team names from {len(local_csvs)} local CSVs...")
+    print("(Reading all rows per file so away-game pitchers are captured — takes a couple minutes)")
 
-    manifest = defaultdict(list)
+    manifest = defaultdict(set)   # team → set of file IDs to deduplicate
+    manifest_entries = defaultdict(dict)  # team → {id: entry} for dedup
     missing_in_drive = []
 
     for i, fname in enumerate(local_csvs, 1):
         if i % 500 == 0:
             print(f"  {i}/{len(local_csvs)}...")
         fpath = os.path.join(data_dir, fname)
+        file_id = drive_map.get(fname)
+        if not file_id:
+            missing_in_drive.append(fname)
+            continue
         try:
+            teams_in_file = set()
             with open(fpath, encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
-                row = next(reader, None)
-                if row is None:
-                    continue
-                team = row.get('PitcherTeam', '').strip()
-                if not team:
-                    continue
+                for row in reader:
+                    team = row.get('PitcherTeam', '').strip()
+                    if team:
+                        teams_in_file.add(team)
+            for team in teams_in_file:
+                manifest_entries[team][file_id] = {'name': fname, 'id': file_id}
         except Exception as e:
             print(f"  Warning: could not read {fname}: {e}")
             continue
 
-        file_id = drive_map.get(fname)
-        if file_id:
-            manifest[team].append({'name': fname, 'id': file_id})
-        else:
-            missing_in_drive.append(fname)
-
     # Step 3: write manifest
-    out = dict(manifest)
+    out = {team: list(entries.values()) for team, entries in manifest_entries.items()}
     with open(args.out, 'w') as f:
         json.dump(out, f, indent=2)
 

@@ -249,27 +249,27 @@ def load_damage_zones():
 
 
 def build_team_index():
-    """Scan all CSVs in data/2026, read first 2 lines to build TEAM_INDEX."""
+    """Scan all CSVs in DATA_DIR, index each file under every team that appears in it."""
     print("Building team index from CSVs...")
-    index = defaultdict(list)
+    index = defaultdict(set)
     files = [f for f in os.listdir(DATA_DIR) if f.endswith('.csv')]
-    for fname in files:
+    for i, fname in enumerate(files):
+        if (i + 1) % 1000 == 0:
+            print(f"  {i+1}/{len(files)}...")
         fpath = os.path.join(DATA_DIR, fname)
         try:
             with open(fpath, encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
-                row = next(reader, None)
-                if row is None:
-                    continue
-                team = row.get('PitcherTeam', '').strip()
-                if team:
-                    index[team].append(fpath)
+                for row in reader:
+                    team = row.get('PitcherTeam', '').strip()
+                    if team:
+                        index[team].add(fpath)
         except Exception:
             continue
-    result = dict(index)
+    result = {k: list(v) for k, v in index.items()}
     with open(TEAM_INDEX_PKL, 'wb') as f:
         pickle.dump(result, f)
-    print(f"Team index built: {len(result)} teams, {sum(len(v) for v in result.values())} files")
+    print(f"Team index built: {len(result)} teams, {sum(len(v) for v in result.values())} file-team mappings")
     return result
 
 

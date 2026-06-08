@@ -720,7 +720,7 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 
 <!-- ══ MOBILE SETUP SCREEN ══════════════════════════════ -->
 <div id="mobile-setup">
-  <div id="mob-logo">⚾ Pitch Visualizer</div>
+  <div id="mob-logo">Pitch Visualizer</div>
   <div id="mob-subtitle">Swing Decision Trainer</div>
   <div id="mob-setup-card">
     <div class="mob-label">Team</div>
@@ -744,9 +744,9 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 </div>
 
 <div id="header">
-  <h1>⚾ Pitch Visualizer</h1>
+  <h1>Pitch Visualizer</h1>
   <span class="subtitle">Batter's Eye View — Drag the crosshair in the zone panel to move the pitch</span>
-  <button id="game-mode-btn" onclick="toggleGameMode()">🎮 Game Mode</button>
+  <button id="game-mode-btn" onclick="toggleGameMode()">Game Mode</button>
 </div>
 
 <div id="layout">
@@ -764,7 +764,7 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <div class="control-group">
       <select id="pitcher-select" disabled><option>Select a team first</option></select>
     </div>
-    <button id="rand-pitcher-btn" onclick="randomizePitcher()" disabled>🎲 Randomize Pitcher</button>
+    <button id="rand-pitcher-btn" onclick="randomizePitcher()" disabled>Randomize Pitcher</button>
 
     <div class="section-title" style="margin-top:4px">Hitter Side (Game)</div>
     <div id="hitter-side-row">
@@ -873,13 +873,13 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <div id="decision-question">SWING OR TAKE?</div>
     <div id="decision-timer-bar"><div id="decision-timer-fill"></div></div>
     <div id="decision-btns">
-      <button class="dec-btn" id="swing-btn" onclick="makeDecision('swing')">⚡ SWING</button>
-      <button class="dec-btn" id="take-btn"  onclick="makeDecision('take')">✋ TAKE</button>
+      <button class="dec-btn" id="swing-btn" onclick="makeDecision('swing')">SWING</button>
+      <button class="dec-btn" id="take-btn"  onclick="makeDecision('take')">TAKE</button>
     </div>
     <!-- Mobile big tap buttons (shown instead of desktop buttons) -->
     <div id="mobile-dec-btns">
-      <button class="mob-dec-btn" id="mob-swing-btn" onclick="makeDecision('swing')">⚡ SWING</button>
-      <button class="mob-dec-btn" id="mob-take-btn"  onclick="makeDecision('take')">✋ TAKE</button>
+      <button class="mob-dec-btn" id="mob-swing-btn" onclick="makeDecision('swing')">SWING</button>
+      <button class="mob-dec-btn" id="mob-take-btn"  onclick="makeDecision('take')">TAKE</button>
     </div>
   </div>
 
@@ -1736,7 +1736,7 @@ function toggleAnimation() {
   const btn = document.getElementById('anim-btn');
   if (animPlaying) {
     btn.classList.add('playing');
-    btn.textContent = '⏸ Pause';
+    btn.textContent = 'Pause';
     // Resume from current animT — don't reset
   } else {
     btn.classList.remove('playing');
@@ -2239,7 +2239,7 @@ function exitGameMode() {
   gameState = 'idle';
 
   document.getElementById('game-mode-btn').classList.remove('active');
-  document.getElementById('game-mode-btn').textContent = '🎮 Game Mode';
+  document.getElementById('game-mode-btn').textContent = 'Game Mode';
   document.getElementById('game-hud').classList.remove('visible');
   document.getElementById('zone-panel').style.display = '';
   document.getElementById('decision-label').style.display = '';
@@ -2515,22 +2515,22 @@ function makeDecision(decision) {
   if (decision === 'swing') {
     if (modelInZone) {
       pts = probPct;
-      title = '✅ STRIKE SWING'; color = '#60e060';
+      title = 'STRIKE SWING'; color = '#60e060';
     } else {
       pts = -(100 - probPct);
-      title = '❌ CHASED IT'; color = '#e05050';
+      title = 'CHASED IT'; color = '#e05050';
     }
   } else if (decision === 'take') {
     if (!modelInZone) {
       pts = 100 - probPct;
-      title = probPct >= 35 ? '👁 GREAT EYE!' : '✓ GOOD TAKE';
+      title = probPct >= 35 ? 'GREAT EYE!' : 'GOOD TAKE';
       color = probPct >= 35 ? '#f0c040' : '#60a0f0';
     } else {
       pts = -probPct;
-      title = '⚠ TOOK A STRIKE'; color = '#ff9060';
+      title = 'TOOK A STRIKE'; color = '#ff9060';
     }
   } else { // timeout
-    pts = 0; title = '⏱ TOO SLOW!'; color = '#6070a0';
+    pts = 0; title = 'TOO SLOW!'; color = '#6070a0';
   }
 
   gameScore += pts;
@@ -2769,10 +2769,10 @@ function showFinalScore() {
   const maxPts = GAME_MAX_PITCHES * 85;
   const pct = Math.round((Math.max(0, gameScore) / maxPts) * 100);
   let grade, gradeColor;
-  if      (pct >= 80) { grade = '⭐ ELITE HITTER';   gradeColor = '#f0c040'; }
-  else if (pct >= 60) { grade = '✅ GOOD EYE';        gradeColor = '#60e060'; }
-  else if (pct >= 40) { grade = '📈 KEEP DEVELOPING'; gradeColor = '#60a0f0'; }
-  else                { grade = '🔄 KEEP WORKING';    gradeColor = '#8090b0'; }
+  if      (pct >= 80) { grade = 'ELITE HITTER';    gradeColor = '#f0c040'; }
+  else if (pct >= 60) { grade = 'GOOD EYE';         gradeColor = '#60e060'; }
+  else if (pct >= 40) { grade = 'KEEP DEVELOPING';  gradeColor = '#60a0f0'; }
+  else                { grade = 'KEEP WORKING';      gradeColor = '#8090b0'; }
 
   const titleEl = document.getElementById('result-title');
   titleEl.textContent = grade;
@@ -2789,7 +2789,7 @@ function showFinalScore() {
     </div>
     <div style="display:flex;gap:16px;margin-top:20px;justify-content:center">
       <button onclick="restartGame()" style="padding:11px 30px;background:#1a2840;border:1px solid #3060a0;color:#70a8e0;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer">
-        🔄 Play Again
+        Play Again
       </button>
       <button onclick="exitGameMode()" style="padding:11px 30px;background:#1e1e2e;border:1px solid #3a3a60;color:#7070a0;border-radius:6px;font-size:14px;cursor:pointer">
         ✕ Exit
@@ -2888,7 +2888,7 @@ function startMobileGame() {
   const mobSel = document.getElementById('mob-pitcher-select');
   const pid = mobSel.value;
   if (!pid || !PITCH_DATA[pid]) {
-    document.getElementById('mob-loading').textContent = '⚠ Select a team and pitcher first';
+    document.getElementById('mob-loading').textContent = 'Select a team and pitcher first';
     return;
   }
   selectPitcher(pid);

@@ -509,9 +509,239 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 .hud-label { font-size: 9px; color: #4a5070; text-transform: uppercase; letter-spacing: 0.1em; }
 .hud-value { font-size: 22px; font-weight: 700; color: #e0e4f0; font-variant-numeric: tabular-nums; }
 .hud-value.small { font-size: 14px; }
+
+/* ══════════════════════════════════════════════════════
+   MOBILE  (≤ 768 px)  — desktop layout unchanged above
+══════════════════════════════════════════════════════ */
+#mobile-setup    { display: none; }   /* hidden on desktop */
+#mobile-dec-btns { display: none; }   /* hidden on desktop */
+
+@media (max-width: 768px) {
+
+  /* ── Hide all desktop chrome ── */
+  #header, #sidebar, #zone-panel,
+  #decision-btns, #decision-label,
+  #view-label, #speed-tag { display: none !important; }
+
+  /* ── Layout: canvas fills full screen ── */
+  body { overflow: hidden; }
+  #layout { display: block; position: fixed; inset: 0; }
+  #canvas-wrap { width: 100vw; height: 100vh; }
+  #three-canvas { width: 100% !important; height: 100% !important; }
+
+  /* ── Game HUD ── */
+  #game-hud { top: 10px; padding: 6px 14px; gap: 16px; }
+  .hud-value { font-size: 17px; }
+  .hud-value.small { font-size: 11px; }
+
+  /* ── Decision overlay: fills black screen, buttons at bottom ── */
+  #game-overlay.black-screen { align-items: stretch; justify-content: flex-start; }
+  #decision-overlay {
+    position: absolute; inset: 0;
+    justify-content: flex-end;
+    padding-bottom: 0;
+    gap: 0;
+    align-items: center;
+  }
+  #decision-question { font-size: 24px; margin-bottom: 16px; }
+  #decision-timer-bar { width: 80vw; margin-bottom: 20px; }
+
+  /* ── Mobile SWING / TAKE buttons ── */
+  #mobile-dec-btns {
+    display: flex !important;
+    width: 100%;
+    gap: 12px;
+    padding: 0 16px 40px;
+    flex-shrink: 0;
+  }
+  .mob-dec-btn {
+    flex: 1;
+    padding: 22px 0;
+    font-size: 22px;
+    font-weight: 900;
+    border: 2px solid;
+    border-radius: 12px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.08s;
+  }
+  #mob-swing-btn { background: #2a1010; border-color: #c03030; color: #ff6060; }
+  #mob-take-btn  { background: #0f1e30; border-color: #3070c0; color: #60a0f0; }
+  #mob-swing-btn:active { transform: scale(0.96); background: #3a1818; }
+  #mob-take-btn:active  { transform: scale(0.96); background: #162540; }
+
+  /* ── Result screen: stack zone diagram vertically ── */
+  #result-title { font-size: 30px; }
+  #result-pts   { font-size: 44px; }
+  #result-detail { width: 100%; padding: 0 12px; }
+  #result-detail > div:first-child {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  #result-detail button {
+    width: 100% !important;
+    padding: 16px !important;
+    font-size: 17px !important;
+    margin-top: 6px;
+    box-sizing: border-box;
+  }
+
+  /* ── Mobile Setup Screen ── */
+  #mobile-setup {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: #06090f;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    overflow-y: auto;
+  }
+  #mob-logo {
+    font-size: 26px;
+    font-weight: 900;
+    color: #7eb8f7;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  #mob-subtitle {
+    font-size: 13px;
+    color: #5a6080;
+    margin-bottom: 28px;
+  }
+  #mob-setup-card {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+  }
+  .mob-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #4a5070;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 16px 0 6px;
+  }
+  #mob-team-search {
+    width: 100%;
+    background: #1a1f30;
+    border: 1px solid #2a3050;
+    color: #ccd;
+    border-radius: 6px;
+    font-size: 15px;
+    padding: 11px 12px;
+    outline: none;
+  }
+  #mob-team-search:focus { border-color: #4a6090; }
+  #mob-team-suggestions {
+    background: #141824;
+    border: 1px solid #2a3050;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 180px;
+    overflow-y: auto;
+    display: none;
+  }
+  .mob-sug {
+    padding: 11px 12px;
+    font-size: 14px;
+    color: #ccd;
+    cursor: pointer;
+    border-bottom: 1px solid #1e2336;
+  }
+  .mob-sug:active { background: #1e2540; }
+  #mob-pitcher-wrap { margin-top: 0; }
+  #mob-pitcher-select {
+    width: 100%;
+    background: #1a1f30;
+    border: 1px solid #2a3050;
+    color: #ccd;
+    border-radius: 6px;
+    font-size: 15px;
+    padding: 11px 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  #mob-hitter-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .mob-hs-btn {
+    flex: 1;
+    padding: 11px;
+    background: #1a1f30;
+    border: 1px solid #2a3050;
+    color: #6070a0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+  }
+  .mob-hs-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
+  #mob-start-btn {
+    width: 100%;
+    margin-top: 28px;
+    padding: 18px;
+    background: #2a1a50;
+    border: 2px solid #7050d0;
+    color: #c090ff;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s;
+  }
+  #mob-start-btn:active { background: #3a2060; }
+  #mob-loading {
+    font-size: 12px;
+    color: #4a5070;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+}
 </style>
 </head>
 <body data-token="{{ token }}">
+
+<!-- ══ MOBILE SETUP SCREEN ══════════════════════════════ -->
+<div id="mobile-setup">
+  <div id="mob-logo">⚾ Pitch Visualizer</div>
+  <div id="mob-subtitle">Swing Decision Trainer</div>
+  <div id="mob-setup-card">
+    <div class="mob-label">Team</div>
+    <input id="mob-team-search" placeholder="Search team tag…" autocomplete="off">
+    <div id="mob-team-suggestions"></div>
+
+    <div class="mob-label">Pitcher</div>
+    <div id="mob-pitcher-wrap">
+      <select id="mob-pitcher-select" disabled><option>Select a team first</option></select>
+    </div>
+    <div id="mob-loading"></div>
+
+    <div class="mob-label">Hitter Side</div>
+    <div id="mob-hitter-row">
+      <button class="mob-hs-btn active" id="mob-hs-r" onclick="setMobHitter('Right')">RHH</button>
+      <button class="mob-hs-btn"        id="mob-hs-l" onclick="setMobHitter('Left')">LHH</button>
+    </div>
+
+    <button id="mob-start-btn" onclick="startMobileGame()">▶ START GAME</button>
+  </div>
+</div>
 
 <div id="header">
   <h1>⚾ Pitch Visualizer</h1>
@@ -645,6 +875,11 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <div id="decision-btns">
       <button class="dec-btn" id="swing-btn" onclick="makeDecision('swing')">⚡ SWING</button>
       <button class="dec-btn" id="take-btn"  onclick="makeDecision('take')">✋ TAKE</button>
+    </div>
+    <!-- Mobile big tap buttons (shown instead of desktop buttons) -->
+    <div id="mobile-dec-btns">
+      <button class="mob-dec-btn" id="mob-swing-btn" onclick="makeDecision('swing')">⚡ SWING</button>
+      <button class="mob-dec-btn" id="mob-take-btn"  onclick="makeDecision('take')">✋ TAKE</button>
     </div>
   </div>
 
@@ -2574,6 +2809,101 @@ function restartGame() {
 // Enable randomize button once pitchers are loaded
 const _origPopulatePitcherSelect = populatePitcherSelect;
 // (patch applied inline below via wrapper)
+
+// ─────────────────────────────────────────────────
+//  MOBILE UI
+// ─────────────────────────────────────────────────
+function isMobile() { return window.innerWidth <= 768; }
+
+// ── Mobile team search ─────────────────────────────
+(function() {
+  const mobSearch = document.getElementById('mob-team-search');
+  const mobSugs   = document.getElementById('mob-team-suggestions');
+  const mobLoad   = document.getElementById('mob-loading');
+
+  mobSearch.addEventListener('input', () => {
+    const q = mobSearch.value.trim().toUpperCase();
+    mobSugs.innerHTML = '';
+    if (!q) { mobSugs.style.display = 'none'; return; }
+    const matches = allTeams.filter(t => t.tag.toUpperCase().includes(q)).slice(0, 20);
+    if (!matches.length) { mobSugs.style.display = 'none'; return; }
+    matches.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'mob-sug';
+      div.textContent = `${t.tag} (${t.file_count} files)`;
+      div.addEventListener('click', () => {
+        mobSearch.value = t.tag;
+        mobSugs.style.display = 'none';
+        mobLoad.textContent = 'Loading…';
+        selectTeam(t.tag).then(() => { mobLoad.textContent = ''; });
+      });
+      mobSugs.appendChild(div);
+    });
+    mobSugs.style.display = 'block';
+  });
+
+  mobSearch.addEventListener('blur', () => {
+    setTimeout(() => { mobSugs.style.display = 'none'; }, 150);
+  });
+})();
+
+// ── Sync pitcher dropdown to mobile ───────────────
+// Patch populatePitcherSelect to also fill #mob-pitcher-select
+const _origPopulate = populatePitcherSelect;
+function populatePitcherSelect(pitchers) {
+  _origPopulate(pitchers);
+  const mobSel = document.getElementById('mob-pitcher-select');
+  const sorted = Object.values(pitchers).sort((a, b) => a.name.localeCompare(b.name));
+  mobSel.innerHTML = '';
+  if (!sorted.length) {
+    mobSel.innerHTML = '<option>No pitchers found</option>';
+    mobSel.disabled = true;
+    return;
+  }
+  sorted.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.name} (${p.throws[0]}HP)`;
+    mobSel.appendChild(opt);
+  });
+  mobSel.disabled = false;
+  mobSel.removeEventListener('change', onMobPitcherChange);
+  mobSel.addEventListener('change', onMobPitcherChange);
+  // selectPitcher already called by _origPopulate for first item
+}
+
+function onMobPitcherChange() {
+  selectPitcher(document.getElementById('mob-pitcher-select').value);
+}
+
+// ── Hitter side toggle (mobile) ───────────────────
+function setMobHitter(side) {
+  setGameHitter(side); // reuse existing function
+  document.getElementById('mob-hs-r').classList.toggle('active', side === 'Right');
+  document.getElementById('mob-hs-l').classList.toggle('active', side === 'Left');
+}
+
+// ── Start game from mobile setup ──────────────────
+function startMobileGame() {
+  const mobSel = document.getElementById('mob-pitcher-select');
+  const pid = mobSel.value;
+  if (!pid || !PITCH_DATA[pid]) {
+    document.getElementById('mob-loading').textContent = '⚠ Select a team and pitcher first';
+    return;
+  }
+  selectPitcher(pid);
+  document.getElementById('mobile-setup').style.display = 'none';
+  enterGameMode();
+}
+
+// ── Show setup screen again on exit (mobile) ──────
+const _origExitGameMode = exitGameMode;
+function exitGameMode() {
+  _origExitGameMode();
+  if (isMobile()) {
+    document.getElementById('mobile-setup').style.display = '';
+  }
+}
 
 // ─────────────────────────────────────────────────
 //  INIT

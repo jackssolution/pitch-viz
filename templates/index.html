@@ -319,6 +319,196 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #2a3050; border-radius: 2px; }
+
+/* ── Game Mode UI ── */
+#game-mode-btn {
+  background: #1a1030;
+  border: 1px solid #4a30a0;
+  color: #9060e0;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+#game-mode-btn:hover { background: #24183a; }
+#game-mode-btn.active { background: #2a1a50; border-color: #7050d0; color: #c090ff; }
+
+#rand-pitcher-btn {
+  width: calc(100% - 24px);
+  background: #1a2030;
+  border: 1px solid #2a3050;
+  color: #7090c0;
+  border-radius: 4px;
+  padding: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 2px 12px 0;
+  transition: all 0.15s;
+}
+#rand-pitcher-btn:hover { background: #1e253a; color: #90b8f0; }
+#rand-pitcher-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#hitter-side-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+}
+.hs-label { font-size: 10px; color: #5a6080; flex-shrink: 0; }
+.hs-btn {
+  flex: 1;
+  padding: 4px 6px;
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  color: #6070a0;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.hs-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
+.hs-btn:hover:not(.active) { background: #1e253a; }
+
+/* Game overlay — fullscreen */
+#game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-top: 20px;
+  padding-right: 32px;
+  gap: 20px;
+  pointer-events: none;
+}
+#game-overlay.active { display: flex; }
+#game-overlay.black-screen {
+  background: rgba(0,0,0,0.97);
+  pointer-events: all;
+  align-items: center;
+  justify-content: center;
+}
+
+#countdown-display {
+  font-size: 72px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255,255,255,0.6);
+  letter-spacing: -0.02em;
+  display: none;
+  line-height: 1;
+  animation: pulse-in 0.25s ease-out;
+}
+@keyframes pulse-in {
+  from { transform: scale(1.3); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+#decision-overlay {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+#decision-question {
+  font-size: 30px;
+  font-weight: 700;
+  color: #e0e4f0;
+  letter-spacing: 0.08em;
+}
+#decision-timer-bar {
+  width: 420px;
+  height: 7px;
+  background: #1e2336;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#decision-timer-fill {
+  height: 100%;
+  background: #f0c040;
+  border-radius: 4px;
+  width: 100%;
+}
+#decision-btns {
+  display: flex;
+  gap: 28px;
+}
+.dec-btn {
+  padding: 20px 54px;
+  font-size: 24px;
+  font-weight: 900;
+  border: 2px solid;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: transform 0.1s, box-shadow 0.15s;
+  user-select: none;
+}
+.dec-btn:hover { transform: scale(1.04); }
+.dec-btn:active { transform: scale(0.96); }
+#swing-btn {
+  background: #2a1010;
+  border-color: #c03030;
+  color: #ff6060;
+}
+#swing-btn:hover { box-shadow: 0 0 30px rgba(192,48,48,0.5); }
+#take-btn {
+  background: #0f1e30;
+  border-color: #3070c0;
+  color: #60a0f0;
+}
+#take-btn:hover { box-shadow: 0 0 30px rgba(48,112,192,0.5); }
+
+#result-display {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+#result-title {
+  font-size: 46px;
+  font-weight: 900;
+  text-shadow: 0 0 30px currentColor;
+  animation: pulse-in 0.25s ease-out;
+}
+#result-pts {
+  font-size: 62px;
+  font-weight: 900;
+  animation: pulse-in 0.3s ease-out;
+}
+#result-detail { font-size: 18px; color: #8090b0; margin-top: 4px; }
+
+/* Game HUD (inside canvas-wrap) */
+#game-hud {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,12,22,0.9);
+  border: 1px solid #2a3050;
+  border-radius: 6px;
+  padding: 8px 28px;
+  display: none;
+  gap: 36px;
+  align-items: center;
+  pointer-events: none;
+  z-index: 50;
+  white-space: nowrap;
+}
+#game-hud.visible { display: flex; }
+.hud-block { text-align: center; }
+.hud-label { font-size: 9px; color: #4a5070; text-transform: uppercase; letter-spacing: 0.1em; }
+.hud-value { font-size: 22px; font-weight: 700; color: #e0e4f0; font-variant-numeric: tabular-nums; }
+.hud-value.small { font-size: 14px; }
 </style>
 </head>
 <body data-token="{{ token }}">
@@ -326,6 +516,7 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 <div id="header">
   <h1>⚾ Pitch Visualizer</h1>
   <span class="subtitle">Batter's Eye View — Drag the crosshair in the zone panel to move the pitch</span>
+  <button id="game-mode-btn" onclick="toggleGameMode()">🎮 Game Mode</button>
 </div>
 
 <div id="layout">
@@ -342,6 +533,14 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <div class="section-title">Pitcher</div>
     <div class="control-group">
       <select id="pitcher-select" disabled><option>Select a team first</option></select>
+    </div>
+    <button id="rand-pitcher-btn" onclick="randomizePitcher()" disabled>🎲 Randomize Pitcher</button>
+
+    <div class="section-title" style="margin-top:4px">Hitter Side (Game)</div>
+    <div id="hitter-side-row">
+      <span class="hs-label">Hitter:</span>
+      <button class="hs-btn active" id="hs-r" onclick="setGameHitter('Right')">RHH</button>
+      <button class="hs-btn" id="hs-l" onclick="setGameHitter('Left')">LHH</button>
     </div>
 
     <div class="section-title">View</div>
@@ -377,6 +576,23 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
   <!-- MAIN 3D VIEW -->
   <div id="canvas-wrap">
     <canvas id="three-canvas"></canvas>
+
+    <!-- Game HUD (score/pitch counter shown during game) -->
+    <div id="game-hud">
+      <div class="hud-block">
+        <div class="hud-label">Score</div>
+        <div class="hud-value" id="hud-score">0</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">Pitch</div>
+        <div class="hud-value" id="hud-pitch">0 / 10</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">Pitcher</div>
+        <div class="hud-value small" id="hud-pitcher">—</div>
+      </div>
+    </div>
+
     <div id="view-label" class="hud">Batter's Perspective</div>
     <div id="decision-label" class="hud">
       <span style="color:#f0c040">● 20ft</span> Decision Point &nbsp;|&nbsp;
@@ -417,6 +633,26 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <button id="reset-btn" onclick="resetTarget()">↺ Reset to Avg Location</button>
   </div>
 
+</div>
+
+<!-- Game fullscreen overlay (countdown / decision / result) -->
+<div id="game-overlay">
+  <div id="countdown-display"></div>
+
+  <div id="decision-overlay">
+    <div id="decision-question">SWING OR TAKE?</div>
+    <div id="decision-timer-bar"><div id="decision-timer-fill"></div></div>
+    <div id="decision-btns">
+      <button class="dec-btn" id="swing-btn" onclick="makeDecision('swing')">⚡ SWING</button>
+      <button class="dec-btn" id="take-btn"  onclick="makeDecision('take')">✋ TAKE</button>
+    </div>
+  </div>
+
+  <div id="result-display">
+    <div id="result-title"></div>
+    <div id="result-pts"></div>
+    <div id="result-detail"></div>
+  </div>
 </div>
 
 <script>
@@ -471,8 +707,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080b14);
-scene.fog = new THREE.FogExp2(0x080b14, 0.012);
+scene.background = new THREE.Color(0x06090f);
+scene.fog = new THREE.FogExp2(0x08101a, 0.004);
 
 const camera = new THREE.PerspectiveCamera(55, 1, 0.01, 500);
 
@@ -507,15 +743,168 @@ function tm2s(x, y_dist, z) {
 //  SCENE OBJECTS
 // ─────────────────────────────────────────────────
 
-// Ground plane (subtle)
-{
-  const geo = new THREE.PlaneGeometry(60, 200);
-  const mat = new THREE.MeshBasicMaterial({ color: 0x0c1018, side: THREE.DoubleSide });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.set(0, 0, -40);
-  scene.add(mesh);
-}
+// ═══════════════════════════════════════════════════════════════════════════
+//  BASEBALL FIELD
+//  Coordinate system: X = horiz (+ toward 1B), Y = up, Z = -distance from plate
+//  Home plate = (0,0,0), Pitcher's rubber = (0,0,-60.5)
+//  1B = (63.6,0,-63.6), 2B = (0,0,-127.3), 3B = (-63.6,0,-63.6)
+// ═══════════════════════════════════════════════════════════════════════════
+(function buildBaseballField() {
+  const bmat = c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide });
+
+  // Helper: add a horizontal plane (rotation.x = -PI/2 maps XY shape -> XZ ground)
+  const hplane = (geo, color, x, y, z) => {
+    const m = new THREE.Mesh(geo, bmat(color));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, y, z);
+    scene.add(m);
+    return m;
+  };
+
+  // Colors
+  const G1     = 0x1a3d0a; // dark grass stripe
+  const G2     = 0x2a5c14; // light grass stripe
+  const DIRT   = 0xa07848; // infield / mound dirt
+  const WARN   = 0x7a5530; // warning track
+  const CHALK  = 0xd8d8c0; // foul lines, bases
+  const GWALL  = 0x1a4a12; // green outfield wall
+  const YWALL  = 0xcf9e1a; // yellow wall cap
+  const STEEL  = 0x848078; // light-tower poles
+
+  // Outfield grass — large dark circle as base
+  hplane(new THREE.CircleGeometry(420, 64), G1, 0, 0.001, -110);
+
+  // Mowing stripes — parallel bands running toward outfield (every 18ft)
+  for (let i = 0; i < 28; i++) {
+    const z = -(i * 18) - 9;
+    hplane(new THREE.PlaneGeometry(350, 18), i % 2 === 0 ? G1 : G2, 0, 0.002, z);
+  }
+
+  // Infield dirt (large circle centered just past home)
+  hplane(new THREE.CircleGeometry(98, 48), DIRT, 0, 0.003, -58);
+
+  // Infield grass diamond
+  // ShapeGeometry in XY; after rotation.x=-PI/2 → shape Y maps to scene -Z
+  // home=(0,0), 1B=(63.6,63.6), 2B=(0,127.3), 3B=(-63.6,63.6) in shape coords
+  {
+    const s = new THREE.Shape();
+    s.moveTo(0, 1.5);
+    s.lineTo(63.6,  63.6);
+    s.lineTo(0,    127.3);
+    s.lineTo(-63.6, 63.6);
+    s.closePath();
+    const m = new THREE.Mesh(new THREE.ShapeGeometry(s), bmat(G2));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(0, 0.004, 0);
+    scene.add(m);
+  }
+
+  // Pitcher's mound (raised dirt circle + rubber)
+  hplane(new THREE.CircleGeometry(9, 32), DIRT, 0, 0.012, -60.5);
+  hplane(new THREE.PlaneGeometry(0.5, 0.1), 0xcccccc, 0, 0.022, -60.5);
+
+  // Warning track (ring centered on field)
+  {
+    const m = new THREE.Mesh(new THREE.RingGeometry(278, 302, 64), bmat(WARN));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(0, 0.005, -95);
+    scene.add(m);
+  }
+
+  // Foul lines (1B / 3B)
+  {
+    const geo = new THREE.PlaneGeometry(0.25, 330);
+    const m1 = new THREE.Mesh(geo, bmat(CHALK));
+    m1.rotation.set(-Math.PI / 2, 0, -Math.PI / 4);
+    m1.position.set(116, 0.006, -116);
+    scene.add(m1);
+    const m3 = m1.clone();
+    m3.rotation.set(-Math.PI / 2, 0, Math.PI / 4);
+    m3.position.set(-116, 0.006, -116);
+    scene.add(m3);
+  }
+
+  // Bases (1B, 2B, 3B)
+  [[63.6, -63.6], [0, -127.3], [-63.6, -63.6]].forEach(([x, z]) => {
+    hplane(new THREE.PlaneGeometry(1.25, 1.25), CHALK, x, 0.01, z);
+  });
+
+  // Outfield wall — semicircular arc of panels at ~308ft
+  {
+    const WDIST = 308, WH = 3.8, NPAN = 28;
+    for (let i = 0; i <= NPAN; i++) {
+      const ang = Math.PI * i / NPAN; // 0 (RF line) to PI (LF line)
+      const wx = -Math.cos(ang) * WDIST;
+      const wz = -Math.sin(ang) * WDIST;
+      if (wz > 5) continue; // skip panels behind home plate
+      const pw = (Math.PI * WDIST / NPAN) * 1.05;
+
+      const wp = new THREE.Mesh(new THREE.PlaneGeometry(pw, WH), bmat(GWALL));
+      wp.position.set(wx, WH / 2, wz);
+      wp.lookAt(new THREE.Vector3(0, WH / 2, 0));
+      scene.add(wp);
+
+      const wc = new THREE.Mesh(new THREE.PlaneGeometry(pw, 0.55), bmat(YWALL));
+      wc.position.set(wx, WH + 0.28, wz);
+      wc.lookAt(new THREE.Vector3(0, WH + 0.28, 0));
+      scene.add(wc);
+    }
+  }
+
+  // Stadium stands — tiered arc behind the outfield wall
+  {
+    const NROWS = 6;
+    for (let row = 0; row < NROWS; row++) {
+      const r = 315 + row * 9;
+      const h = 4 + row * 3.5;
+      const NPAN = 20 + row * 2;
+      for (let i = 0; i <= NPAN; i++) {
+        const ang = Math.PI * i / NPAN;
+        const sx = -Math.cos(ang) * r;
+        const sz = -Math.sin(ang) * r;
+        if (sz > 5) continue;
+        const pw = (Math.PI * r / NPAN) * 1.05;
+        const sp = new THREE.Mesh(
+          new THREE.PlaneGeometry(pw, 5 + row * 2),
+          bmat(row % 2 === 0 ? 0x1e2d3e : 0x243548)
+        );
+        sp.position.set(sx, h, sz);
+        sp.lookAt(new THREE.Vector3(0, h, 0));
+        scene.add(sp);
+      }
+    }
+  }
+
+  // Light towers (4 towers at outfield corners)
+  [[-255, -185], [255, -185], [-305, -275], [305, -275]].forEach(([tx, tz]) => {
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.0, 1.6, 95, 8),
+      bmat(STEEL)
+    );
+    pole.position.set(tx, 47.5, tz);
+    scene.add(pole);
+
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(24, 3.5, 4), bmat(0xfffde8));
+    lamp.position.set(tx, 96, tz);
+    lamp.rotation.y = Math.atan2(-tx, -tz);
+    scene.add(lamp);
+
+    // Point light for each tower
+    const tlight = new THREE.PointLight(0xfff5d0, 0.9, 700);
+    tlight.position.set(tx, 96, tz);
+    scene.add(tlight);
+  });
+
+  // Backstop screen (translucent, behind home plate)
+  {
+    const bs = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 22),
+      new THREE.MeshBasicMaterial({ color: 0x2a3c50, transparent: true, opacity: 0.35 })
+    );
+    bs.position.set(0, 11, 32);
+    scene.add(bs);
+  }
+})();
 
 // Home plate — flat 17" edge toward pitcher (scene -Z), pointed tip toward catcher (+Z)
 // Shape in XY plane; rotation.x = -PI/2 maps shape Y → scene -Z
@@ -676,20 +1065,39 @@ updateBatterSilhouette();
   scene.add(m);
 }
 
-// Baseline indicators
+// Center-line markers (pitch path guide)
 for (let z = -5; z > -55; z -= 5) {
   const geo = new THREE.PlaneGeometry(0.02, 0.3);
-  const mat = new THREE.MeshBasicMaterial({ color: 0x1e2840, opacity: 0.6, transparent: true });
+  const mat = new THREE.MeshBasicMaterial({ color: 0x2a3a50, opacity: 0.6, transparent: true });
   const m = new THREE.Mesh(geo, mat);
   m.rotation.x = -Math.PI / 2;
   m.position.set(0, 0.002, z);
   scene.add(m);
 }
+// Foul lines extending from plate corners toward outfield — gives depth cue in hitter's POV
+{
+  const foulMat = new THREE.MeshBasicMaterial({ color: 0x888888, opacity: 0.5, transparent: true, side: THREE.DoubleSide });
+  // First-base foul line (goes toward +X, -Z)
+  const lineGeo1 = new THREE.PlaneGeometry(0.04, 120);
+  const line1 = new THREE.Mesh(lineGeo1, foulMat);
+  line1.rotation.x = -Math.PI / 2;
+  line1.rotation.z = -Math.PI / 4; // 45° toward right field
+  line1.position.set(42.4, 0.005, -42.4);
+  scene.add(line1);
+  // Third-base foul line (goes toward -X, -Z)
+  const line3 = new THREE.Mesh(lineGeo1.clone(), foulMat.clone());
+  line3.rotation.x = -Math.PI / 2;
+  line3.rotation.z = Math.PI / 4;
+  line3.position.set(-42.4, 0.005, -42.4);
+  scene.add(line3);
+}
 
 // Ambient + directional lights
-scene.add(new THREE.AmbientLight(0x202840, 2));
-const dirLight = new THREE.DirectionalLight(0x4060a0, 1.5);
-dirLight.position.set(5, 20, 10);
+// Night-game ambient — cool blue-white, kept moderate so tower point lights matter
+scene.add(new THREE.AmbientLight(0x8aaac8, 1.8));
+// Main key light (from above, slightly from 3B side like a stadium light rig)
+const dirLight = new THREE.DirectionalLight(0xfff5e0, 1.4);
+dirLight.position.set(-30, 80, 40);
 scene.add(dirLight);
 
 // ─────────────────────────────────────────────────
@@ -1103,7 +1511,7 @@ function toggleAnimation() {
 }
 
 function updateAnimation(delta) {
-  if (!animPlaying || activeTrajData.length === 0) return;
+  if (gameMode || !animPlaying || activeTrajData.length === 0) return;
 
   // Find slowest pitch travel time (= longest duration before loop)
   const maxTravelTime = Math.max(...activeTrajData.map(d => d.travelTime));
@@ -1219,6 +1627,7 @@ function populatePitcherSelect(pitchers) {
     sel.appendChild(opt);
   });
   sel.disabled = false;
+  document.getElementById('rand-pitcher-btn').disabled = false;
   sel.removeEventListener('change', onPitcherChange);
   sel.addEventListener('change', onPitcherChange);
   if (sorted.length) selectPitcher(sorted[0].id);
@@ -1513,9 +1922,658 @@ function animate(now) {
   then = now;
   if (controls.enabled) controls.update();
   updateAnimation(delta);
+  updateGameAnimation(delta);
   renderer.render(scene, camera);
 }
 requestAnimationFrame(animate);
+
+// ─────────────────────────────────────────────────
+//  GAME MODE
+// ─────────────────────────────────────────────────
+let gameMode = false;
+let gameState = 'idle'; // idle | countdown | pitching | decision | result | final
+let gameScore = 0;
+let gamePitchCount = 0;
+const GAME_MAX_PITCHES = 10;
+let gameHitterSide = 'Right';
+let gameCurrentPitch = null;  // { pitch, plateX, plateZ, gamePts, gameVecs, travelTime, inZone, damageScore }
+let gameDecisionFrac = 0;
+let gameDecisionMade = false;
+let gameDecisionTimeout = null;
+let gameCountdownTimeout = null;
+let gameAnimBallObj = null;
+let gameAnimT = 0;
+
+// ── Pitcher figure ──────────────────────────────
+let releaseRing = null;     // THREE.Mesh — red torus shown at release point each pitch
+
+// Hitter POV camera: 2ft off plate laterally, 5ft up, just behind plate
+const GAME_CAMERA = {
+  Right: { pos: new THREE.Vector3(-2.0, 5.0, 1.2), look: new THREE.Vector3(0.0, 2.5, -50) },
+  Left:  { pos: new THREE.Vector3( 2.0, 5.0, 1.2), look: new THREE.Vector3(0.0, 2.5, -50) },
+};
+
+function setGameHitter(side) {
+  gameHitterSide = side;
+  document.getElementById('hs-r').classList.toggle('active', side === 'Right');
+  document.getElementById('hs-l').classList.toggle('active', side === 'Left');
+  setBatter(side);
+}
+
+function randomizePitcher() {
+  const sel = document.getElementById('pitcher-select');
+  const opts = Array.from(sel.options).filter(o => o.value && o.value !== 'Select a team first');
+  if (!opts.length) return;
+  const pick = opts[Math.floor(Math.random() * opts.length)];
+  sel.value = pick.value;
+  selectPitcher(pick.value);
+}
+
+function toggleGameMode() {
+  if (gameMode) { exitGameMode(); } else { enterGameMode(); }
+}
+
+function enterGameMode() {
+  const pitcher = PITCH_DATA[currentPitcherId];
+  if (!pitcher || !pitcher.pitches.length) {
+    alert('Select a team and pitcher first.');
+    return;
+  }
+  gameMode = true;
+  gameScore = 0;
+  gamePitchCount = 0;
+
+  document.getElementById('game-mode-btn').classList.add('active');
+  document.getElementById('game-mode-btn').textContent = '✕ Exit Game';
+  document.getElementById('game-hud').classList.add('visible');
+  document.getElementById('zone-panel').style.display = 'none';
+  document.getElementById('decision-label').style.display = 'none';
+
+  controls.enabled = false;
+  if (batterGroup) batterGroup.visible = false;
+  updateGameHUD();
+  startNextPitch();
+}
+
+function exitGameMode() {
+  gameMode = false;
+  clearTimeout(gameDecisionTimeout);
+  clearTimeout(gameCountdownTimeout);
+  clearTimeout(gameNextTimeout);
+  gameNextTimeout = null;
+  gameState = 'idle';
+
+  document.getElementById('game-mode-btn').classList.remove('active');
+  document.getElementById('game-mode-btn').textContent = '🎮 Game Mode';
+  document.getElementById('game-hud').classList.remove('visible');
+  document.getElementById('zone-panel').style.display = '';
+  document.getElementById('decision-label').style.display = '';
+
+  hideOverlay();
+  controls.enabled = true;
+  strikeZoneMesh.visible = true;
+  if (damageOverlay) damageOverlay.visible = true;
+  if (batterGroup) batterGroup.visible = true;
+
+  if (gameAnimBallObj) { scene.remove(gameAnimBallObj); gameAnimBallObj = null; }
+  if (releaseRing) { releaseRing.visible = false; }
+  renderTrajectories();
+  setView(currentView);
+}
+
+function updateGameHUD() {
+  document.getElementById('hud-score').textContent = gameScore;
+  document.getElementById('hud-pitch').textContent = `${gamePitchCount} / ${GAME_MAX_PITCHES}`;
+  const pitcher = PITCH_DATA[currentPitcherId];
+  document.getElementById('hud-pitcher').textContent = pitcher ? pitcher.name.split(', ').reverse().join(' ') : '—';
+}
+
+// ── Pitch generation ─────────────────────────────
+function gaussianRandom() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function generateRandomPitch() {
+  const pitcher = PITCH_DATA[currentPitcherId];
+  if (!pitcher) return null;
+
+  // Weight by count
+  const total = pitcher.pitches.reduce((s, p) => s + p.count, 0);
+  let r = Math.random() * total;
+  let selected = pitcher.pitches[0];
+  for (const p of pitcher.pitches) { r -= p.count; if (r <= 0) { selected = p; break; } }
+
+  // Scatter around average plate location
+  const scatterX = gaussianRandom() * 0.55;
+  const scatterZ = gaussianRandom() * 0.42;
+  const plateX = Math.max(-2.3, Math.min(2.3, selected.plate_x + scatterX));
+  const plateZ = Math.max(0.8,  Math.min(4.8, selected.plate_z + scatterZ));
+
+  const inZone = (plateX >= ZONE.left && plateX <= ZONE.right &&
+                  plateZ >= ZONE.bottom && plateZ <= ZONE.top);
+  const damageScore = getDamageScore(plateX, plateZ);
+
+  // Build trajectory shifted to this plate location
+  const dx = plateX - selected.plate_x;
+  const dz = plateZ - selected.plate_z;
+  const gamePts = selected.trajectory.map(([x, y_dist, z, frac]) => [
+    x + dx * frac, y_dist, z + dz * frac, frac
+  ]);
+  const gameVecs = pointsToVectors(gamePts);
+
+  const FT_PER_MPH = 1.467;
+  const travelTime = selected.velo > 0 ? 54.0 / (selected.velo * FT_PER_MPH) : 0.45;
+
+  return { pitch: selected, plateX, plateZ, gamePts, gameVecs, travelTime, inZone, damageScore };
+}
+
+function getDecisionFrac(pts) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (pts[i][1] >= DEC_DIST && pts[i+1][1] <= DEC_DIST) {
+      const t = (pts[i][1] - DEC_DIST) / (pts[i][1] - pts[i+1][1]);
+      return (i + t) / (pts.length - 1);
+    }
+  }
+  return 0.65;
+}
+
+// ── Release-point ring ───────────────────────────
+// Replaces the pitcher figure — a 1ft-radius red torus facing the batter,
+// placed at the actual TrackMan release coords so hitters know where to look.
+function buildReleaseRing() {
+  if (releaseRing) return;
+  // TorusGeometry(radius, tube, radialSeg, tubularSeg)
+  const geo = new THREE.TorusGeometry(1.5, 0.06, 12, 48);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xff2020 });
+  releaseRing = new THREE.Mesh(geo, mat);
+  // Torus is in XY plane by default — we want it to face the batter (+Z),
+  // so no rotation needed (normal is already along Z).
+  releaseRing.visible = false;
+  scene.add(releaseRing);
+}
+
+// buildPitcherFigure stub — pitcher removed, replaced by release ring
+function buildPitcherFigure() { /* no-op */ }
+
+
+// ── Game flow ────────────────────────────────────
+function startNextPitch() {
+  if (gamePitchCount >= GAME_MAX_PITCHES) { showFinalScore(); return; }
+
+  gamePitchCount++;
+  updateGameHUD();
+
+  gameCurrentPitch = generateRandomPitch();
+  if (!gameCurrentPitch) { exitGameMode(); return; }
+
+  gameDecisionFrac = getDecisionFrac(gameCurrentPitch.gamePts);
+  gameDecisionMade = false;
+  gameAnimT = 0;
+
+  // Clear scene, hide zone artifacts
+  clearTrajectories();
+  strikeZoneMesh.visible = false;
+  if (damageOverlay) damageOverlay.visible = false;
+  if (batterGroup) batterGroup.visible = false;
+
+  // Set hitter POV camera — set directly, do NOT call controls.update() because
+  // OrbitControls.update() applies its internal sphericalDelta (prior user rotation/pan)
+  // even when controls.enabled = false, which overwrites whatever position we set here.
+  const cv = GAME_CAMERA[gameHitterSide];
+  camera.position.copy(cv.pos);
+  camera.lookAt(cv.look.x, cv.look.y, cv.look.z);
+
+  // Place release-point ring exactly at gameVecs[0] — same position the ball starts from
+  buildReleaseRing();
+  releaseRing.position.copy(gameCurrentPitch.gameVecs[0]);
+  releaseRing.visible = true;
+
+  // Create game ball (white, slightly larger for visibility)
+  if (gameAnimBallObj) scene.remove(gameAnimBallObj);
+  const ballGeo = new THREE.SphereGeometry(0.13, 14, 14);
+  const ballMat = new THREE.MeshBasicMaterial({ color: 0xf5f5e8 });
+  gameAnimBallObj = new THREE.Mesh(ballGeo, ballMat);
+  gameAnimBallObj.position.copy(gameCurrentPitch.gameVecs[0]);
+  gameAnimBallObj.visible = false;
+  scene.add(gameAnimBallObj);
+
+  runCountdown(3);
+}
+
+function runCountdown(n) {
+  const overlay = document.getElementById('game-overlay');
+  const display = document.getElementById('countdown-display');
+  overlay.classList.add('active');
+  overlay.classList.remove('black-screen');
+  overlay.style.background = ''; // clear any forced inline background from prior result screen
+  document.getElementById('decision-overlay').style.display = 'none';
+  document.getElementById('result-display').style.display = 'none';
+  display.style.display = 'block';
+
+  if (n > 0) {
+    gameState = 'countdown';
+    display.textContent = n;
+    display.style.color = n === 1 ? '#ff8060' : '#ffffff';
+    // Force animation restart on each number change
+    display.style.animation = 'none';
+    display.offsetHeight; // reflow
+    display.style.animation = 'pulse-in 0.3s ease-out';
+    gameCountdownTimeout = setTimeout(() => runCountdown(n - 1), 900);
+  } else {
+    // Countdown done — immediately clear overlay and launch, no extra flash
+    display.style.display = 'none';
+    overlay.classList.remove('active');
+    gameCountdownTimeout = setTimeout(() => {
+      launchPitch();
+    }, 0);
+  }
+}
+
+function launchPitch() {
+  gameState = 'pitching';
+  controls.enabled = false;
+  if (releaseRing) releaseRing.visible = false;
+  if (gameAnimBallObj) gameAnimBallObj.visible = true;
+}
+
+function updateGameAnimation(delta) {
+  // Show game ball and hide ring once pitch is launched
+  if (gameMode && gameState === 'pitching' && gameAnimBallObj) {
+    gameAnimBallObj.visible = true;
+    if (releaseRing) releaseRing.visible = false;
+  }
+
+  if (!gameMode || gameState !== 'pitching' || !gameCurrentPitch || !gameAnimBallObj) return;
+
+  const { gameVecs, travelTime } = gameCurrentPitch;
+  gameAnimT += delta * 0.75; // 3× real speed (0.25 normal → 0.75 game)
+
+  const frac = Math.min(1.0, gameAnimT / travelTime);
+  const idx = frac * (gameVecs.length - 1);
+  const i0 = Math.floor(idx);
+  const i1 = Math.min(gameVecs.length - 1, i0 + 1);
+  const pos = new THREE.Vector3().lerpVectors(gameVecs[i0], gameVecs[i1], idx - i0);
+  gameAnimBallObj.position.copy(pos);
+
+  // Trigger decision screen when ball hits decision point
+  if (!gameDecisionMade && frac >= gameDecisionFrac) {
+    gameDecisionMade = true;
+    triggerDecision();
+  }
+}
+
+function triggerDecision() {
+  gameState = 'decision';
+
+  const overlay = document.getElementById('game-overlay');
+  overlay.classList.add('active', 'black-screen');
+  overlay.style.pointerEvents = 'all';
+
+  const decEl = document.getElementById('decision-overlay');
+  decEl.style.display = 'flex';
+
+  // Animate timer bar: reset to full then shrink over 1s
+  const fill = document.getElementById('decision-timer-fill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  fill.offsetHeight; // reflow
+  fill.style.transition = 'width 1s linear';
+  fill.style.width = '0%';
+
+  gameDecisionTimeout = setTimeout(() => makeDecision('timeout'), 1000);
+}
+
+// Real logistic regression model fit on ~1.35M called pitches from TrackMan data.
+// Features: [side, height, side², height², side·height]
+// Matches the p=0.5 contour shown in the catcher framing dashboard.
+const LR_INTERCEPT = -16.2544;
+const LR_COEFS = [-0.2129, 16.1358, -2.6704, -3.2547, 0.02976];
+
+function getStrikeProb(px, pz) {
+  const logit = LR_INTERCEPT
+    + LR_COEFS[0] * px
+    + LR_COEFS[1] * pz
+    + LR_COEFS[2] * px * px
+    + LR_COEFS[3] * pz * pz
+    + LR_COEFS[4] * px * pz;
+  return 1 / (1 + Math.exp(-logit));
+}
+
+let gameNextTimeout = null; // cancelable 5s auto-advance
+
+function advanceToNextPitch() {
+  clearTimeout(gameNextTimeout);
+  gameNextTimeout = null;
+  const overlay = document.getElementById('game-overlay');
+  const resultEl = document.getElementById('result-display');
+  resultEl.style.display = 'none';
+  overlay.classList.remove('active', 'black-screen');
+  overlay.style.background = '';   // clear forced inline so countdown stays transparent
+  overlay.style.pointerEvents = '';
+  controls.enabled = false;
+  startNextPitch();
+}
+
+function makeDecision(decision) {
+  if (gameState !== 'decision' && decision !== 'timeout') return;
+  clearTimeout(gameDecisionTimeout);
+  gameState = 'result';
+
+  document.getElementById('decision-overlay').style.display = 'none';
+
+  // Use actual plate crossing for scoring (same as what's shown at reveal)
+  const { gamePts } = gameCurrentPitch;
+  const platePt = getPlatePoint(gamePts);
+  const sX = platePt[0], sZ = platePt[2];
+  const prob = getStrikeProb(sX, sZ);
+  const probPct = Math.round(prob * 100);
+  const modelInZone = prob >= 0.5;
+
+  // Score = ±prob% for correct/wrong swing, ±(1-prob)% for correct/wrong take
+  // Swing at 52% strike → +52 | Swing at 20% ball → -80
+  // Take 10% ball → +90     | Take 99% strike → -99
+  let pts = 0, title = '', color = '#fff';
+
+  if (decision === 'swing') {
+    if (modelInZone) {
+      pts = probPct;
+      title = '✅ STRIKE SWING'; color = '#60e060';
+    } else {
+      pts = -(100 - probPct);
+      title = '❌ CHASED IT'; color = '#e05050';
+    }
+  } else if (decision === 'take') {
+    if (!modelInZone) {
+      pts = 100 - probPct;
+      title = probPct >= 35 ? '👁 GREAT EYE!' : '✓ GOOD TAKE';
+      color = probPct >= 35 ? '#f0c040' : '#60a0f0';
+    } else {
+      pts = -probPct;
+      title = '⚠ TOOK A STRIKE'; color = '#ff9060';
+    }
+  } else { // timeout
+    pts = 0; title = '⏱ TOO SLOW!'; color = '#6070a0';
+  }
+
+  gameScore += pts;
+  updateGameHUD();
+
+  // Show result over black screen — force inline so nothing can override it
+  const overlay = document.getElementById('game-overlay');
+  overlay.classList.add('active', 'black-screen');
+  overlay.style.background = 'rgba(0,0,0,0.97)';
+  overlay.style.pointerEvents = 'all';
+
+  const resultEl = document.getElementById('result-display');
+  resultEl.style.display = 'flex';
+
+  const titleEl = document.getElementById('result-title');
+  titleEl.textContent = title;
+  titleEl.style.color = color;
+  titleEl.style.animation = 'none'; titleEl.offsetHeight; titleEl.style.animation = 'pulse-in 0.25s ease-out';
+
+  const ptsEl = document.getElementById('result-pts');
+  ptsEl.textContent = pts > 0 ? `+${pts}` : `${pts}`;
+  ptsEl.style.color = pts > 0 ? '#60e060' : pts < 0 ? '#ff5050' : '#8090b0';
+  ptsEl.style.animation = 'none'; ptsEl.offsetHeight; ptsEl.style.animation = 'pulse-in 0.3s ease-out';
+
+  document.getElementById('result-detail').textContent = ''; // filled by revealPitchLocation
+
+  // After 0.8s: swap result-detail to show 2D zone diagram (overlay stays black)
+  setTimeout(revealPitchLocation, 800);
+
+  // Auto-advance after 10s (or player hits Continue which cancels this)
+  gameNextTimeout = setTimeout(advanceToNextPitch, 10000);
+}
+
+// Draw a crisp 2D strike zone diagram with pitch dot + p=0.5 contour.
+// XRange: ±2.0ft, ZRange: 0.7–4.5ft
+function buildResultZoneCanvas(pX, pZ, inZone, hexColor) {
+  const W = 280, H = 330;
+  const PAD = 28;
+  const X_MIN = -2.0, X_MAX = 2.0, Z_MIN = 0.7, Z_MAX = 4.5;
+  const IW = W - PAD * 2, IH = H - PAD * 2;
+
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0b0d14';
+  ctx.fillRect(0, 0, W, H);
+
+  function toC(x, z) {
+    return [
+      PAD + (x - X_MIN) / (X_MAX - X_MIN) * IW,
+      PAD + (Z_MAX - z) / (Z_MAX - Z_MIN) * IH,
+    ];
+  }
+
+  // Strike zone fill
+  const [szL, szT] = toC(ZONE.left,  ZONE.top);
+  const [szR, szB] = toC(ZONE.right, ZONE.bottom);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fillRect(szL, szT, szR - szL, szB - szT);
+
+  // 3x3 grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 3; i++) {
+    const gx = szL + (szR - szL) * i / 3;
+    const gz = szT + (szB - szT) * i / 3;
+    ctx.beginPath(); ctx.moveTo(gx, szT); ctx.lineTo(gx, szB); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(szL, gz); ctx.lineTo(szR, gz); ctx.stroke();
+  }
+
+  // Strike Zone border (rulebook, white solid)
+  ctx.strokeStyle = 'rgba(255,255,255,0.80)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(szL, szT, szR - szL, szB - szT);
+  // "Strike Zone" label — top-left corner of box
+  ctx.fillStyle = 'rgba(220,230,255,0.70)';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Strike Zone', szL + 3, szT - 4);
+
+  // ── Real p=0.5 contour — pixel-row scan using the SAME coordinate mapping as toC ──
+  // toC maps field (x,z) → canvas (PAD + x_frac*IW, PAD + z_frac*IH)
+  // so the scan must use the same padded interior, not the raw W/H dimensions.
+  ctx.fillStyle = 'rgba(255,200,50,0.95)';
+  const SCAN_STEP = 2;
+  for (let cy = PAD; cy <= H - PAD; cy += SCAN_STEP) {
+    const fz = Z_MAX - (Z_MAX - Z_MIN) * (cy - PAD) / IH; // matches toC Z mapping
+    let prevP = null;
+    for (let cx = PAD; cx <= W - PAD; cx += SCAN_STEP) {
+      const fx = X_MIN + (X_MAX - X_MIN) * (cx - PAD) / IW; // matches toC X mapping
+      const p = getStrikeProb(fx, fz);
+      if (prevP !== null && (prevP < 0.5) !== (p < 0.5)) {
+        ctx.fillRect(cx - 1, cy, 3, SCAN_STEP);
+      }
+      prevP = p;
+    }
+  }
+  // "Adjusted Zone" label for p=0.5 contour — bottom-right outside the oval
+  ctx.fillStyle = 'rgba(255,200,50,0.88)';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'left';
+  const [adjLabelX] = toC(ZONE.right + 0.08, 0);
+  const [, adjLabelY] = toC(0, ZONE.bottom - 0.1);
+  ctx.fillText('Adjusted Zone', adjLabelX, adjLabelY);
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = 'rgba(255,200,50,0.65)';
+  ctx.fillText('(p = .50)', adjLabelX, adjLabelY + 12);
+
+  // Home plate pentagon
+  const plateHalfW = 17 / 24; // 8.5 inches in feet
+  const [plL] = toC(-plateHalfW, 0);
+  const [plR] = toC( plateHalfW, 0);
+  const [, plY] = toC(0, ZONE.bottom - 0.85);
+  const ptx = (plL + plR) / 2;
+  ctx.beginPath();
+  ctx.moveTo(plL,  plY);
+  ctx.lineTo(plR,  plY);
+  ctx.lineTo(plR,  plY + 7);
+  ctx.lineTo(ptx,  plY + 14);
+  ctx.lineTo(plL,  plY + 7);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  ctx.fill();
+
+  // Pitch dot
+  const [dx, dy] = toC(pX, pZ);
+  const dotColor = inZone ? '#60e060' : '#ff5050';
+  const dotR = 10;
+  const grd = ctx.createRadialGradient(dx, dy, 1, dx, dy, dotR * 2.5);
+  grd.addColorStop(0, dotColor + 'cc');
+  grd.addColorStop(1, dotColor + '00');
+  ctx.beginPath(); ctx.arc(dx, dy, dotR * 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = grd; ctx.fill();
+  ctx.beginPath(); ctx.arc(dx, dy, dotR, 0, Math.PI * 2);
+  ctx.fillStyle = dotColor; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Axis label
+  ctx.fillStyle = 'rgba(140,160,200,0.55)';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('← away   in →', W / 2, H - 7);
+
+  return c;
+}
+
+function revealPitchLocation() {
+  if (!gameCurrentPitch) return;
+  const { gamePts, pitch } = gameCurrentPitch;
+
+  if (gameAnimBallObj) gameAnimBallObj.visible = false;
+
+  // Compute crossing from actual trajectory
+  const platePt   = getPlatePoint(gamePts);
+  const actualX   = platePt[0];
+  const actualZ   = platePt[2];
+  const strikeProb  = getStrikeProb(actualX, actualZ);
+  const probPct     = Math.round(strikeProb * 100);
+  const actualInZone = getStrikeProb(actualX, actualZ) >= 0.5;
+  const callColor = actualInZone ? '#60e060' : '#ff6060';
+  const callText  = actualInZone ? 'STRIKE' : 'BALL';
+  const pitchHex  = new THREE.Color(pitch.color).getHexString();
+
+  // Build 2D zone diagram entirely before touching the DOM
+  let zCanvas = null;
+  try { zCanvas = buildResultZoneCanvas(actualX, actualZ, actualInZone, pitchHex); } catch(e) { console.error('zone canvas error:', e); }
+
+  // Replace result-detail with zone diagram + info
+  const det = document.getElementById('result-detail');
+  det.innerHTML = '';   // clear placeholder text
+
+  // Outer flex row: diagram left, text right
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:20px;align-items:center;justify-content:center;margin-bottom:12px';
+
+  // Zone canvas — already painted, just insert it
+  if (zCanvas) {
+    zCanvas.style.cssText = 'border:2px solid #4a5880;border-radius:6px;display:block;flex-shrink:0;background:#0b0d14';
+    row.appendChild(zCanvas);
+  }
+
+  // Text column
+  const info = document.createElement('div');
+  info.style.textAlign = 'left';
+  info.innerHTML = `
+    <div style="font-size:24px;font-weight:900;color:${callColor};margin-bottom:6px">${callText}</div>
+    <div style="font-size:13px;color:#8090b0;margin-bottom:4px">
+      Strike Prob: <span style="color:${callColor};font-weight:700">${probPct}%</span>
+    </div>
+    <div style="font-size:13px;margin-bottom:4px">
+      <span style="color:#${ pitchHex };font-weight:700">${pitch.pitch_type}</span>
+      <span style="color:#8090b0"> · ${pitch.velo.toFixed(1)} mph</span>
+    </div>
+    <div style="font-size:11px;color:#4a5070">
+      X: ${actualX >= 0 ? '+' : ''}${actualX.toFixed(2)}ft &nbsp; H: ${actualZ.toFixed(2)}ft
+    </div>
+  `;
+  row.appendChild(info);
+  det.appendChild(row);
+
+  // Continue button
+  const btn = document.createElement('button');
+  btn.textContent = 'Continue →';
+  btn.style.cssText = 'padding:10px 36px;background:#1a2840;border:1px solid #3060a0;color:#70a8e0;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;';
+  btn.onmouseover = () => btn.style.background = '#243660';
+  btn.onmouseout  = () => btn.style.background = '#1a2840';
+  btn.onclick = advanceToNextPitch;
+  det.appendChild(btn);
+}
+
+function hideOverlay() {
+  const overlay = document.getElementById('game-overlay');
+  overlay.classList.remove('active', 'black-screen');
+  overlay.style.background = '';
+  overlay.style.pointerEvents = '';
+  document.getElementById('countdown-display').style.display = 'none';
+  document.getElementById('decision-overlay').style.display = 'none';
+  document.getElementById('result-display').style.display = 'none';
+}
+
+function showFinalScore() {
+  gameState = 'final';
+  const overlay = document.getElementById('game-overlay');
+  overlay.classList.add('active', 'black-screen');
+  overlay.style.pointerEvents = 'all';
+
+  const resultEl = document.getElementById('result-display');
+  resultEl.style.display = 'flex';
+
+  // Max possible: if every pitch is a clear strike taken/swung perfectly ~85pts avg
+  const maxPts = GAME_MAX_PITCHES * 85;
+  const pct = Math.round((Math.max(0, gameScore) / maxPts) * 100);
+  let grade, gradeColor;
+  if      (pct >= 80) { grade = '⭐ ELITE HITTER';   gradeColor = '#f0c040'; }
+  else if (pct >= 60) { grade = '✅ GOOD EYE';        gradeColor = '#60e060'; }
+  else if (pct >= 40) { grade = '📈 KEEP DEVELOPING'; gradeColor = '#60a0f0'; }
+  else                { grade = '🔄 KEEP WORKING';    gradeColor = '#8090b0'; }
+
+  const titleEl = document.getElementById('result-title');
+  titleEl.textContent = grade;
+  titleEl.style.color = gradeColor;
+  titleEl.style.animation = 'none'; titleEl.offsetHeight; titleEl.style.animation = 'pulse-in 0.3s ease-out';
+
+  const ptsEl = document.getElementById('result-pts');
+  ptsEl.textContent = `${gameScore} pts`;
+  ptsEl.style.color = '#e0e4f0';
+
+  document.getElementById('result-detail').innerHTML = `
+    <div style="font-size:17px;color:#8090b0">
+      ${gamePitchCount} pitches &nbsp;|&nbsp; ${Math.max(0,gameScore)} / ${maxPts} possible (${pct}%)
+    </div>
+    <div style="display:flex;gap:16px;margin-top:20px;justify-content:center">
+      <button onclick="restartGame()" style="padding:11px 30px;background:#1a2840;border:1px solid #3060a0;color:#70a8e0;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer">
+        🔄 Play Again
+      </button>
+      <button onclick="exitGameMode()" style="padding:11px 30px;background:#1e1e2e;border:1px solid #3a3a60;color:#7070a0;border-radius:6px;font-size:14px;cursor:pointer">
+        ✕ Exit
+      </button>
+    </div>
+  `;
+}
+
+function restartGame() {
+  hideOverlay();
+  gameScore = 0;
+  gamePitchCount = 0;
+  updateGameHUD();
+  startNextPitch();
+}
+
+// Enable randomize button once pitchers are loaded
+const _origPopulatePitcherSelect = populatePitcherSelect;
+// (patch applied inline below via wrapper)
 
 // ─────────────────────────────────────────────────
 //  INIT

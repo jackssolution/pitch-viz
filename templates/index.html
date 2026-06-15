@@ -1161,35 +1161,48 @@ function tm2s(x, y_dist, z) {
   scene.add(mesh);
 }
 
-// Batter's boxes + catcher's box — chalk-line outlines on the dirt
+// Batter's boxes + catcher's box — chalk-line planes (same technique as foul lines)
 {
-  const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 1.0, transparent: false });
-  const Y = 0.004; // just above ground
+  const chalkMat = new THREE.MeshBasicMaterial({ color: 0xdddddd, side: THREE.DoubleSide });
+  const Y = 0.004;
+  const W = 0.055; // chalk line width in feet
 
-  function addBox(x0, x1, z0, z1) {
-    const pts = [
-      new THREE.Vector3(x0, Y, z0),
-      new THREE.Vector3(x1, Y, z0),
-      new THREE.Vector3(x1, Y, z1),
-      new THREE.Vector3(x0, Y, z1),
-      new THREE.Vector3(x0, Y, z0),
-    ];
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat.clone()));
+  // Draw one chalk-line segment as a flat plane on the ground
+  function chalk(x0, x1, z0, z1) {
+    const geo = new THREE.PlaneGeometry(Math.abs(x1 - x0), Math.abs(z1 - z0));
+    const m = new THREE.Mesh(geo, chalkMat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set((x0 + x1) / 2, Y, (z0 + z1) / 2);
+    scene.add(m);
   }
 
-  // Batter's box: 4ft wide, 6ft long
-  // inner edge 6" outside plate (plate half-width = 0.708ft → inner at 1.208ft)
-  // front: 4ft forward of plate back tip (tip at Z=+0.583), so Z = 0.583-4 = -3.417
-  // back:  2ft behind plate back tip, so Z = 0.583+2 = +2.583
-  const xInner = 0.708 + 0.5; // 1.208
-  const xOuter = xInner + 4;  // 5.208
-  const zFront = 0.583 - 4;   // -3.417
-  const zBack  = 0.583 + 2;   //  2.583
-  addBox( xInner,  xOuter, zFront, zBack); // right batter's box
-  addBox(-xInner, -xOuter, zFront, zBack); // left batter's box
+  // Batter's box dimensions (MLB rules):
+  //   4ft wide, 6ft long; inner edge 6" from plate side (plate hw = 0.708ft)
+  //   front line: 4ft toward pitcher from plate back tip (tip at Z=+0.583)
+  //   back line:  2ft toward catcher from plate back tip
+  const xi = 0.708 + 0.5;  // inner edge  1.208ft from center
+  const xo = xi + 4;        // outer edge  5.208ft from center
+  const zf = 0.583 - 4;    // front line  Z = -3.417
+  const zb = 0.583 + 2;    // back line   Z = +2.583
 
-  // Catcher's box: ~8ft wide (±4ft), 3ft deep behind the plate tip
-  addBox(-4, 4, zBack, zBack + 3);
+  // Right batter's box
+  chalk( xi,       xo,      zf - W/2, zf + W/2); // front
+  chalk( xi,       xo,      zb - W/2, zb + W/2); // back
+  chalk( xi - W/2, xi+W/2,  zf,       zb);        // inner side
+  chalk( xo - W/2, xo+W/2,  zf,       zb);        // outer side
+
+  // Left batter's box (mirror in X)
+  chalk(-xi,      -xo,      zf - W/2, zf + W/2);
+  chalk(-xi,      -xo,      zb - W/2, zb + W/2);
+  chalk(-xi + W/2,-xi-W/2,  zf,       zb);
+  chalk(-xo + W/2,-xo-W/2,  zf,       zb);
+
+  // Catcher's box: 8ft wide, 3ft deep behind the batter's box back line
+  const cb = zb + 3;
+  chalk(-4,       4,        zb - W/2, zb + W/2); // front (shared w/ batter box back)
+  chalk(-4,       4,        cb - W/2, cb + W/2); // rear
+  chalk(-4 - W/2,-4 + W/2, zb,       cb);        // left side
+  chalk( 4 - W/2, 4 + W/2, zb,       cb);        // right side
 }
 
 // Strike zone (wireframe box)

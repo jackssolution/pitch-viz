@@ -1046,16 +1046,20 @@ function tm2s(x, y_dist, z) {
     scene.add(m);
   }
 
-  // Foul lines (1B / 3B)
+  // Foul lines (1B / 3B) — flat on the ground, diverging at 45° from plate corners
+  // rotation.set(x, y, z) in XYZ order: Rx(-PI/2) lays flat, Ry(±3PI/4) rotates in ground plane
   {
-    const geo = new THREE.PlaneGeometry(0.25, 330);
+    const S2  = Math.SQRT1_2; // 1/√2
+    const hw  = 0.708;        // plate half-width
+    const len = 330;
+    const geo = new THREE.PlaneGeometry(0.12, len);
     const m1 = new THREE.Mesh(geo, bmat(CHALK));
-    m1.rotation.set(-Math.PI / 2, 0, -Math.PI / 4);
-    m1.position.set(116, 0.006, -116);
+    m1.rotation.set(-Math.PI / 2, 3 * Math.PI / 4, 0);
+    m1.position.set(hw + (len/2)*S2, 0.006, -(len/2)*S2);
     scene.add(m1);
     const m3 = m1.clone();
-    m3.rotation.set(-Math.PI / 2, 0, Math.PI / 4);
-    m3.position.set(-116, 0.006, -116);
+    m3.rotation.set(-Math.PI / 2, -3 * Math.PI / 4, 0);
+    m3.position.set(-(hw + (len/2)*S2), 0.006, -(len/2)*S2);
     scene.add(m3);
   }
 
@@ -1352,23 +1356,6 @@ for (let z = -5; z > -55; z -= 5) {
   m.rotation.x = -Math.PI / 2;
   m.position.set(0, 0.002, z);
   scene.add(m);
-}
-// Foul lines extending from plate corners toward outfield — gives depth cue in hitter's POV
-{
-  const foulMat = new THREE.MeshBasicMaterial({ color: 0x888888, opacity: 0.5, transparent: true, side: THREE.DoubleSide });
-  // First-base foul line (goes toward +X, -Z)
-  const lineGeo1 = new THREE.PlaneGeometry(0.04, 120);
-  const line1 = new THREE.Mesh(lineGeo1, foulMat);
-  line1.rotation.x = -Math.PI / 2;
-  line1.rotation.z = -Math.PI / 4; // 45° toward right field
-  line1.position.set(43.1, 0.005, -42.4); // center = plate corner (0.708,0,0) + 60ft along 45°
-  scene.add(line1);
-  // Third-base foul line (goes toward -X, -Z)
-  const line3 = new THREE.Mesh(lineGeo1.clone(), foulMat.clone());
-  line3.rotation.x = -Math.PI / 2;
-  line3.rotation.z = Math.PI / 4;
-  line3.position.set(-43.1, 0.005, -42.4);
-  scene.add(line3);
 }
 
 // Ambient + directional lights

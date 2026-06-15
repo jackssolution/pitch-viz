@@ -1317,13 +1317,13 @@ for (let z = -5; z > -55; z -= 5) {
   const line1 = new THREE.Mesh(lineGeo1, foulMat);
   line1.rotation.x = -Math.PI / 2;
   line1.rotation.z = -Math.PI / 4; // 45° toward right field
-  line1.position.set(42.4, 0.005, -42.4);
+  line1.position.set(43.1, 0.005, -42.4); // center = plate corner (0.708,0,0) + 60ft along 45°
   scene.add(line1);
   // Third-base foul line (goes toward -X, -Z)
   const line3 = new THREE.Mesh(lineGeo1.clone(), foulMat.clone());
   line3.rotation.x = -Math.PI / 2;
   line3.rotation.z = Math.PI / 4;
-  line3.position.set(-42.4, 0.005, -42.4);
+  line3.position.set(-43.1, 0.005, -42.4);
   scene.add(line3);
 }
 

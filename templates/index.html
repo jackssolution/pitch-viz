@@ -1161,6 +1161,37 @@ function tm2s(x, y_dist, z) {
   scene.add(mesh);
 }
 
+// Batter's boxes + catcher's box — chalk-line outlines on the dirt
+{
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 1.0, transparent: false });
+  const Y = 0.004; // just above ground
+
+  function addBox(x0, x1, z0, z1) {
+    const pts = [
+      new THREE.Vector3(x0, Y, z0),
+      new THREE.Vector3(x1, Y, z0),
+      new THREE.Vector3(x1, Y, z1),
+      new THREE.Vector3(x0, Y, z1),
+      new THREE.Vector3(x0, Y, z0),
+    ];
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat.clone()));
+  }
+
+  // Batter's box: 4ft wide, 6ft long
+  // inner edge 6" outside plate (plate half-width = 0.708ft → inner at 1.208ft)
+  // front: 4ft forward of plate back tip (tip at Z=+0.583), so Z = 0.583-4 = -3.417
+  // back:  2ft behind plate back tip, so Z = 0.583+2 = +2.583
+  const xInner = 0.708 + 0.5; // 1.208
+  const xOuter = xInner + 4;  // 5.208
+  const zFront = 0.583 - 4;   // -3.417
+  const zBack  = 0.583 + 2;   //  2.583
+  addBox( xInner,  xOuter, zFront, zBack); // right batter's box
+  addBox(-xInner, -xOuter, zFront, zBack); // left batter's box
+
+  // Catcher's box: ~8ft wide (±4ft), 3ft deep behind the plate tip
+  addBox(-4, 4, zBack, zBack + 3);
+}
+
 // Strike zone (wireframe box)
 let strikeZoneMesh;
 {

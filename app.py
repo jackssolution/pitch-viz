@@ -290,10 +290,21 @@ def get_team_index():
     return build_team_index()
 
 
+PREBUILT_DIR = os.path.join(os.path.dirname(__file__), 'prebuilt')
+
+
 def load_team_data(team_tag):
     """Load all CSVs for a team, run classification, return pitcher dict."""
     if team_tag in TEAM_CACHE:
         return TEAM_CACHE[team_tag]
+
+    # Fast path: serve from pre-built JSON if available
+    prebuilt_path = os.path.join(PREBUILT_DIR, f'{team_tag}.json')
+    if os.path.exists(prebuilt_path):
+        with open(prebuilt_path) as f:
+            pitchers = json.load(f)
+        TEAM_CACHE[team_tag] = pitchers
+        return pitchers
 
     index = get_team_index()
     files = index.get(team_tag, [])
@@ -463,16 +474,10 @@ print(f"Team index ready: {len(TEAM_INDEX)} teams [{mode}]")
 
 
 # ─── ROUTES ───────────────────────────────────────────────────────────────────
-@app.route('/')
-def root():
-    from flask import redirect
-    return redirect(f'/view/{SECRET_TOKEN}')
+PUBLIC = os.environ.get('PUBLIC_SITE', 'false').lower() == 'true'
 
 
-@app.route('/view/<token>')
-def view(token):
-    if token != SECRET_TOKEN:
-        abort(404)
+def _render_app():
     return render_template(
         'index.html',
         damage_zones=json.dumps(DAMAGE_ZONES),
@@ -480,9 +485,25 @@ def view(token):
     )
 
 
+@app.route('/')
+def root():
+    if PUBLIC:
+        return _render_app()
+    from flask import redirect
+    return redirect(f'/view/{SECRET_TOKEN}')
+
+
+@app.route('/view/<token>')
+def view(token):
+    if not PUBLIC and token != SECRET_TOKEN:
+        abort(404)
+    return _render_app()
+
+
+@app.route('/api/teams')
 @app.route('/api/<token>/teams')
-def api_teams(token):
-    if token != SECRET_TOKEN:
+def api_teams(token=None):
+    if not PUBLIC and token != SECRET_TOKEN:
         abort(404)
     result = []
     for tag, files in TEAM_INDEX.items():
@@ -491,9 +512,10 @@ def api_teams(token):
     return jsonify(result)
 
 
+@app.route('/api/team/<tag>')
 @app.route('/api/<token>/team/<tag>')
-def api_team(token, tag):
-    if token != SECRET_TOKEN:
+def api_team(tag, token=None):
+    if not PUBLIC and token != SECRET_TOKEN:
         abort(404)
     pitchers = load_team_data(tag)
     return jsonify({'pitchers': pitchers})

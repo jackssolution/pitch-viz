@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: pitch-visualizer
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: PUBLIC_SITE
+        value: "true"
+      - key: SECRET_TOKEN
+        generateValue: true

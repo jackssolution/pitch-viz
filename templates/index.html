@@ -871,7 +871,6 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 
   <div id="decision-overlay">
     <div id="decision-question">SWING OR TAKE?</div>
-    <div id="decision-timer-bar"><div id="decision-timer-fill"></div></div>
     <div id="decision-btns">
       <button class="dec-btn" id="swing-btn" onclick="makeDecision('swing')">SWING</button>
       <button class="dec-btn" id="take-btn"  onclick="makeDecision('take')">TAKE</button>
@@ -1034,9 +1033,25 @@ function tm2s(x, y_dist, z) {
     scene.add(m);
   }
 
-  // Pitcher's mound (raised dirt circle + rubber)
-  hplane(new THREE.CircleGeometry(9, 32), DIRT, 0, 0.012, -60.5);
-  hplane(new THREE.PlaneGeometry(0.5, 0.1), 0xcccccc, 0, 0.022, -60.5);
+  // Pitcher's mound — truncated cone: 9ft base radius, 1.5ft flat top, 0.833ft (10") tall
+  {
+    const moundMat = bmat(DIRT);
+    const h = 0.833;
+    // Side slope: CylinderGeometry(topR, bottomR, height, segments)
+    const side = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 9, h, 48), moundMat);
+    side.position.set(0, h / 2, -60.5);
+    scene.add(side);
+    // Flat top cap
+    const top = new THREE.Mesh(new THREE.CircleGeometry(1.5, 32), moundMat);
+    top.rotation.x = -Math.PI / 2;
+    top.position.set(0, h + 0.001, -60.5);
+    scene.add(top);
+    // Rubber (pitcher's plate) on top
+    const rubber = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.1), bmat(0xffffff));
+    rubber.rotation.x = -Math.PI / 2;
+    rubber.position.set(0, h + 0.005, -60.5);
+    scene.add(rubber);
+  }
 
   // Warning track (ring centered on field)
   {
@@ -1897,6 +1912,25 @@ function populatePitcherSelect(pitchers) {
   sel.removeEventListener('change', onPitcherChange);
   sel.addEventListener('change', onPitcherChange);
   if (sorted.length) selectPitcher(sorted[0].id);
+  // Also populate mobile pitcher select
+  const mobSel = document.getElementById('mob-pitcher-select');
+  if (mobSel) {
+    mobSel.innerHTML = '';
+    if (!sorted.length) {
+      mobSel.innerHTML = '<option>No pitchers found</option>';
+      mobSel.disabled = true;
+    } else {
+      sorted.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.throws[0]}HP)`;
+        mobSel.appendChild(opt);
+      });
+      mobSel.disabled = false;
+      mobSel.removeEventListener('change', onMobPitcherChange);
+      mobSel.addEventListener('change', onMobPitcherChange);
+    }
+  }
 }
 
 function onPitcherChange() {
@@ -2399,7 +2433,7 @@ function startNextPitch() {
 
   // Create game ball (white, slightly larger for visibility)
   if (gameAnimBallObj) scene.remove(gameAnimBallObj);
-  const ballGeo = new THREE.SphereGeometry(0.13, 14, 14);
+  const ballGeo = new THREE.SphereGeometry(0.18, 14, 14);
   const ballMat = new THREE.MeshBasicMaterial({ color: 0xf5f5e8 });
   gameAnimBallObj = new THREE.Mesh(ballGeo, ballMat);
   gameAnimBallObj.position.copy(gameCurrentPitch.gameVecs[0]);
@@ -2481,15 +2515,6 @@ function triggerDecision() {
   const decEl = document.getElementById('decision-overlay');
   decEl.style.display = 'flex';
 
-  // Animate timer bar: reset to full then shrink over 1s
-  const fill = document.getElementById('decision-timer-fill');
-  fill.style.transition = 'none';
-  fill.style.width = '100%';
-  fill.offsetHeight; // reflow
-  fill.style.transition = 'width 1s linear';
-  fill.style.width = '0%';
-
-  gameDecisionTimeout = setTimeout(() => makeDecision('timeout'), 1000);
 }
 
 // Real logistic regression model fit on ~1.35M called pitches from TrackMan data.
@@ -2524,7 +2549,7 @@ function advanceToNextPitch() {
 }
 
 function makeDecision(decision) {
-  if (gameState !== 'decision' && decision !== 'timeout') return;
+  if (gameState !== 'decision') return;
   clearTimeout(gameDecisionTimeout);
   gameState = 'result';
 
@@ -2878,30 +2903,6 @@ function isMobile() { return window.innerWidth <= 768; }
   });
 })();
 
-// ── Sync pitcher dropdown to mobile ───────────────
-// Patch populatePitcherSelect to also fill #mob-pitcher-select
-const _origPopulate = populatePitcherSelect;
-function populatePitcherSelect(pitchers) {
-  _origPopulate(pitchers);
-  const mobSel = document.getElementById('mob-pitcher-select');
-  const sorted = Object.values(pitchers).sort((a, b) => a.name.localeCompare(b.name));
-  mobSel.innerHTML = '';
-  if (!sorted.length) {
-    mobSel.innerHTML = '<option>No pitchers found</option>';
-    mobSel.disabled = true;
-    return;
-  }
-  sorted.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.name} (${p.throws[0]}HP)`;
-    mobSel.appendChild(opt);
-  });
-  mobSel.disabled = false;
-  mobSel.removeEventListener('change', onMobPitcherChange);
-  mobSel.addEventListener('change', onMobPitcherChange);
-  // selectPitcher already called by _origPopulate for first item
-}
 
 function onMobPitcherChange() {
   selectPitcher(document.getElementById('mob-pitcher-select').value);

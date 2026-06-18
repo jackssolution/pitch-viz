@@ -934,7 +934,7 @@ let batterGroup = null;
 // ─────────────────────────────────────────────────
 const canvas3d = document.getElementById('three-canvas');
 const wrap = document.getElementById('canvas-wrap');
-const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, logarithmicDepthBuffer: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = false;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1006,16 +1006,16 @@ function tm2s(x, y_dist, z) {
   const STEEL  = 0x848078; // light-tower poles
 
   // Outfield grass — large dark circle as base
-  hplane(new THREE.CircleGeometry(420, 64), G1, 0, 0.001, -110);
+  hplane(new THREE.CircleGeometry(420, 64), G1, 0, 0, -110);
 
   // Mowing stripes — parallel bands running toward outfield (every 18ft)
   for (let i = 0; i < 28; i++) {
     const z = -(i * 18) - 9;
-    hplane(new THREE.PlaneGeometry(350, 18), i % 2 === 0 ? G1 : G2, 0, 0.002, z);
+    hplane(new THREE.PlaneGeometry(350, 18), i % 2 === 0 ? G1 : G2, 0, 0.01, z);
   }
 
   // Infield dirt (large circle centered just past home)
-  hplane(new THREE.CircleGeometry(98, 48), DIRT, 0, 0.003, -58);
+  hplane(new THREE.CircleGeometry(98, 48), DIRT, 0, 0.02, -58);
 
   // Infield grass diamond
   // ShapeGeometry in XY; after rotation.x=-PI/2 → shape Y maps to scene -Z

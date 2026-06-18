@@ -2234,6 +2234,7 @@ let gameMode = false;
 let gameState = 'idle'; // idle | countdown | pitching | decision | result | final
 let gameScore = 0;
 let gamePitchCount = 0;
+let gamePossibleMax = 0;
 const GAME_MAX_PITCHES = 10;
 let gameHitterSide = 'Right';
 let gameCurrentPitch = null;  // { pitch, plateX, plateZ, gamePts, gameVecs, travelTime, inZone, damageScore }
@@ -2282,6 +2283,7 @@ function enterGameMode() {
   gameMode = true;
   gameScore = 0;
   gamePitchCount = 0;
+  gamePossibleMax = 0;
 
   document.getElementById('game-mode-btn').classList.add('active');
   document.getElementById('game-mode-btn').textContent = '✕ Exit Game';
@@ -2590,6 +2592,7 @@ function makeDecision(decision) {
   }
 
   gameScore += pts;
+  gamePossibleMax += Math.max(probPct, 100 - probPct);
   updateGameHUD();
 
   // Show result over black screen — force inline so nothing can override it
@@ -2821,34 +2824,27 @@ function showFinalScore() {
   const resultEl = document.getElementById('result-display');
   resultEl.style.display = 'flex';
 
-  // Max possible: if every pitch is a clear strike taken/swung perfectly ~85pts avg
-  const maxPts = GAME_MAX_PITCHES * 85;
-  const pct = Math.round((Math.max(0, gameScore) / maxPts) * 100);
-  let grade, gradeColor;
-  if      (pct >= 80) { grade = 'ELITE HITTER';    gradeColor = '#f0c040'; }
-  else if (pct >= 60) { grade = 'GOOD EYE';         gradeColor = '#60e060'; }
-  else if (pct >= 40) { grade = 'KEEP DEVELOPING';  gradeColor = '#60a0f0'; }
-  else                { grade = 'KEEP WORKING';      gradeColor = '#8090b0'; }
+  const possible = gamePossibleMax || 1;
+  const pct = Math.round((Math.max(0, gameScore) / possible) * 100);
 
   const titleEl = document.getElementById('result-title');
-  titleEl.textContent = grade;
-  titleEl.style.color = gradeColor;
-  titleEl.style.animation = 'none'; titleEl.offsetHeight; titleEl.style.animation = 'pulse-in 0.3s ease-out';
+  titleEl.textContent = '';
 
   const ptsEl = document.getElementById('result-pts');
-  ptsEl.textContent = `${gameScore} pts`;
+  ptsEl.textContent = `${Math.max(0, gameScore)} / ${possible}`;
   ptsEl.style.color = '#e0e4f0';
+  ptsEl.style.animation = 'none'; ptsEl.offsetHeight; ptsEl.style.animation = 'pulse-in 0.3s ease-out';
 
   document.getElementById('result-detail').innerHTML = `
     <div style="font-size:17px;color:#8090b0">
-      ${gamePitchCount} pitches &nbsp;|&nbsp; ${Math.max(0,gameScore)} / ${maxPts} possible (${pct}%)
+      ${gamePitchCount} pitches &nbsp;|&nbsp; ${pct}%
     </div>
     <div style="display:flex;gap:16px;margin-top:20px;justify-content:center">
       <button onclick="restartGame()" style="padding:11px 30px;background:#1a2840;border:1px solid #3060a0;color:#70a8e0;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer">
         Play Again
       </button>
       <button onclick="exitGameMode()" style="padding:11px 30px;background:#1e1e2e;border:1px solid #3a3a60;color:#7070a0;border-radius:6px;font-size:14px;cursor:pointer">
-        ✕ Exit
+        Exit
       </button>
     </div>
   `;
@@ -2858,6 +2854,7 @@ function restartGame() {
   hideOverlay();
   gameScore = 0;
   gamePitchCount = 0;
+  gamePossibleMax = 0;
   updateGameHUD();
   startNextPitch();
 }

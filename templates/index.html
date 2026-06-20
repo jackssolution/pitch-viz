@@ -1717,9 +1717,9 @@ canvas3d.addEventListener('pointerleave', () => {
 // ─────────────────────────────────────────────────
 const VIEWS = {
   batter: {
-    // Dead center behind the plate, shoulder height (~10in below head), looking straight at pitcher
-    pos: new THREE.Vector3(0, 1.8, 6.0),
-    look: new THREE.Vector3(0, 1.8, -55),
+    // Eye height, 2ft behind plate, looking slightly up toward pitcher release point
+    pos: new THREE.Vector3(0, 5.5, 2.0),
+    look: new THREE.Vector3(0, 6.0, -60.5),
     label: "Batter's Perspective",
   },
   pitcher: {

@@ -2321,6 +2321,7 @@ function exitGameMode() {
   if (releaseRing) { releaseRing.visible = false; }
   renderTrajectories();
   setView(currentView);
+  if (isMobile()) document.getElementById('mobile-setup').style.display = '';
 }
 
 function updateGameHUD() {
@@ -2925,14 +2926,6 @@ function startMobileGame() {
   enterGameMode();
 }
 
-// ── Show setup screen again on exit (mobile) ──────
-const _origExitGameMode = exitGameMode;
-function exitGameMode() {
-  _origExitGameMode();
-  if (isMobile()) {
-    document.getElementById('mobile-setup').style.display = '';
-  }
-}
 
 // ─────────────────────────────────────────────────
 //  INIT

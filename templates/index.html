@@ -1735,15 +1735,15 @@ const VIEWS = {
     label: "Catcher's View",
   },
   rhh: {
-    // Right-handed batter stands on the 3B side (negative X)
-    pos: new THREE.Vector3(-0.65, 5.5, 1.8),
-    look: new THREE.Vector3(0.15, 3.2, -35),
+    // RHH stands on 3B side (negative X), same height/angle as game view
+    pos: new THREE.Vector3(-1.0, 5.5, 2.0),
+    look: new THREE.Vector3(0, 6.0, -60.5),
     label: "RHH Batter POV",
   },
   lhh: {
-    // Left-handed batter stands on the 1B side (positive X)
-    pos: new THREE.Vector3(0.65, 5.5, 1.8),
-    look: new THREE.Vector3(-0.15, 3.2, -35),
+    // LHH stands on 1B side (positive X), same height/angle as game view
+    pos: new THREE.Vector3(1.0, 5.5, 2.0),
+    look: new THREE.Vector3(0, 6.0, -60.5),
     label: "LHH Batter POV",
   },
   free: {

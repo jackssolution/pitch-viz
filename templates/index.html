@@ -1717,9 +1717,8 @@ canvas3d.addEventListener('pointerleave', () => {
 // ─────────────────────────────────────────────────
 const VIEWS = {
   batter: {
-    // Eye height, 2ft behind plate, looking slightly up toward pitcher release point
-    pos: new THREE.Vector3(0, 5.5, 2.0),
-    look: new THREE.Vector3(0, 6.0, -60.5),
+    pos: new THREE.Vector3(0, 4.5, 2.5),
+    look: new THREE.Vector3(0, 4.0, -45),
     label: "Batter's Perspective",
   },
   pitcher: {
@@ -1735,15 +1734,13 @@ const VIEWS = {
     label: "Catcher's View",
   },
   rhh: {
-    // RHH stands on 3B side (negative X), same height/angle as game view
-    pos: new THREE.Vector3(-1.0, 5.5, 2.0),
-    look: new THREE.Vector3(0, 6.0, -60.5),
+    pos: new THREE.Vector3(-1.0, 4.5, 3.0),
+    look: new THREE.Vector3(0, 4.0, -45),
     label: "RHH Batter POV",
   },
   lhh: {
-    // LHH stands on 1B side (positive X), same height/angle as game view
-    pos: new THREE.Vector3(1.0, 5.5, 2.0),
-    look: new THREE.Vector3(0, 6.0, -60.5),
+    pos: new THREE.Vector3(1.0, 4.5, 3.0),
+    look: new THREE.Vector3(0, 4.0, -45),
     label: "LHH Batter POV",
   },
   free: {

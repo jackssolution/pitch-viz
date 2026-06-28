@@ -703,6 +703,22 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     transition: all 0.12s;
   }
   .mob-hs-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
+  #mob-offset-row { display: flex; gap: 10px; margin-top: 6px; }
+  .mob-offset-btn {
+    flex: 1;
+    padding: 10px;
+    background: #1a1f30;
+    border: 1px solid #2a3050;
+    color: #6070a0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+  }
+  .mob-offset-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
   #mob-start-btn {
     width: 100%;
     margin-top: 28px;
@@ -751,6 +767,13 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
     <div id="mob-hitter-row">
       <button class="mob-hs-btn active" id="mob-hs-r" onclick="setMobHitter('Right')">RHH</button>
       <button class="mob-hs-btn"        id="mob-hs-l" onclick="setMobHitter('Left')">LHH</button>
+    </div>
+
+    <div class="mob-label" style="margin-top:10px;">Camera Offset</div>
+    <div id="mob-offset-row">
+      <button class="mob-offset-btn active" data-offset="1.0" onclick="setBatterOffset(1.0)">1 ft</button>
+      <button class="mob-offset-btn" data-offset="1.5" onclick="setBatterOffset(1.5)">1.5 ft</button>
+      <button class="mob-offset-btn" data-offset="2.0" onclick="setBatterOffset(2.0)">2 ft</button>
     </div>
 
     <button id="mob-start-btn" onclick="startMobileGame()">▶ START GAME</button>
@@ -1775,7 +1798,7 @@ let batterOffset = 1.0;
 
 function setBatterOffset(ft) {
   batterOffset = ft;
-  document.querySelectorAll('.offset-btn').forEach(b => {
+  document.querySelectorAll('.offset-btn, .mob-offset-btn').forEach(b => {
     b.classList.toggle('active', parseFloat(b.dataset.offset) === ft);
   });
   VIEWS.rhh.pos.x = -ft;

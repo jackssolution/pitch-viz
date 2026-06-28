@@ -2283,10 +2283,13 @@ let gameAnimT = 0;
 let releaseRing = null;     // THREE.Mesh — red torus shown at release point each pitch
 
 // Hitter POV camera: 2ft off plate laterally, 5ft up, just behind plate
-const GAME_CAMERA = {
-  Right: { pos: new THREE.Vector3(-2.0, 5.0, 1.2), look: new THREE.Vector3(0.0, 2.5, -50) },
-  Left:  { pos: new THREE.Vector3( 2.0, 5.0, 1.2), look: new THREE.Vector3(0.0, 2.5, -50) },
-};
+function getGameCamera() {
+  const x = batterOffset;
+  return {
+    Right: { pos: new THREE.Vector3(-x, 4.5, 2.5), look: new THREE.Vector3(0.0, 4.0, -45) },
+    Left:  { pos: new THREE.Vector3( x, 4.5, 2.5), look: new THREE.Vector3(0.0, 4.0, -45) },
+  };
+}
 
 function setGameHitter(side) {
   gameHitterSide = side;
@@ -2459,7 +2462,7 @@ function startNextPitch() {
   // Set hitter POV camera — set directly, do NOT call controls.update() because
   // OrbitControls.update() applies its internal sphericalDelta (prior user rotation/pan)
   // even when controls.enabled = false, which overwrites whatever position we set here.
-  const cv = GAME_CAMERA[gameHitterSide];
+  const cv = getGameCamera()[gameHitterSide];
   camera.position.copy(cv.pos);
   camera.lookAt(cv.look.x, cv.look.y, cv.look.z);
 

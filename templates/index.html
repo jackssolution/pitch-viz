@@ -374,6 +374,20 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
 }
 .hs-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
 .hs-btn:hover:not(.active) { background: #1e253a; }
+.offset-btn {
+  padding: 3px 7px;
+  background: #1a1f30;
+  border: 1px solid #2a3050;
+  color: #6070a0;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 3px;
+  transition: all 0.15s;
+}
+.offset-btn.active { background: #2a3a60; border-color: #5080c0; color: #90b8f0; }
+.offset-btn:hover:not(.active) { background: #1e253a; }
 
 /* Game overlay — fullscreen */
 #game-overlay {
@@ -781,6 +795,13 @@ input[type=checkbox] { accent-color: #5080c0; cursor: pointer; }
       <div class="toggle-btn" id="btn-rhh" onclick="setView('rhh')">RHH</div>
       <div class="toggle-btn" id="btn-lhh" onclick="setView('lhh')">LHH</div>
       <div class="toggle-btn" id="btn-free" onclick="setView('free')">Free</div>
+    </div>
+
+    <div id="batter-offset-row" style="display:none; margin-top:6px;">
+      <span style="font-size:11px; color:#aaa; margin-right:4px;">Side offset:</span>
+      <button class="offset-btn active" data-offset="1.0" onclick="setBatterOffset(1.0)">1 ft</button>
+      <button class="offset-btn" data-offset="1.5" onclick="setBatterOffset(1.5)">1.5 ft</button>
+      <button class="offset-btn" data-offset="2.0" onclick="setBatterOffset(2.0)">2 ft</button>
     </div>
 
     <div class="section-title" style="margin-top:8px">Pitches</div>
@@ -1750,6 +1771,18 @@ const VIEWS = {
   },
 };
 
+let batterOffset = 1.0;
+
+function setBatterOffset(ft) {
+  batterOffset = ft;
+  document.querySelectorAll('.offset-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.offset) === ft);
+  });
+  VIEWS.rhh.pos.x = -ft;
+  VIEWS.lhh.pos.x = ft;
+  if (currentView === 'rhh' || currentView === 'lhh') setView(currentView);
+}
+
 function setView(name) {
   currentView = name;
   const v = VIEWS[name];
@@ -1762,6 +1795,10 @@ function setView(name) {
   // Sync batter silhouette side when switching batter-specific views
   if (name === 'rhh') setBatter('Right');
   else if (name === 'lhh') setBatter('Left');
+
+  // Show offset controls only for RHH/LHH
+  const offsetRow = document.getElementById('batter-offset-row');
+  if (offsetRow) offsetRow.style.display = (name === 'rhh' || name === 'lhh') ? '' : 'none';
 
   ['batter', 'pitcher', 'catcher', 'rhh', 'lhh', 'free'].forEach(n => {
     const el = document.getElementById(`btn-${n}`);
